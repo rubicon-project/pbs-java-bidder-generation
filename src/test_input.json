@@ -1,0 +1,59 @@
+{
+  "bidderName": "rossBidder",
+  "properties": {
+    "endpointUrl": "https://test.rossbidder.com/openrtb",
+    "usersyncerUrl": "https://rtb.rossbidder.com/usersyncer"
+  },
+  "metaInfo": {
+    "maintainerEmail": "rgoncharuk@email.com",
+    "appMediaTypes": [
+      "banner",
+      "video"
+    ],
+    "siteMediaTypes": [
+      "banner",
+      "video"
+    ],
+    "vendorId": 66
+  },
+  "usersyncer": {
+    "cookieFamilyName": "ross",
+    "usersyncInfoType": "redirect"
+  },
+  "ext": {
+    "fields": [
+      {
+        "fieldName": "pubId",
+        "type": "String"
+      },
+      {
+        "fieldName": "zoneId",
+        "type": "Integer"
+      }
+    ]
+  },
+  "bidder": {
+    "transformations": [
+      {
+        "target": "imp.audio",
+        "staticValue": null
+      },
+      {
+        "target": "imp.displaymanagerver",
+        "staticValue": "\"test\""
+      },
+      {
+        "target": "at",
+        "staticValue": 1
+      },
+      {
+        "target": "imp.tagid",
+        "from": "ext.pubId"
+      },
+      {
+        "target": "imp.banner.id",
+        "from": "ext.pubId"
+      }
+    ]
+  }
+}
