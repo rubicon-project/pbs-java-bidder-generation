@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TemplateProcessing {
@@ -138,6 +139,7 @@ public class TemplateProcessing {
         final BidderImplData bidderImplData = bidderData.getBidder();
         if (bidderImplData != null) {
             modifyImps(bidderClassBuilder, bidderData, extClass);
+            modifyRequest(bidderClassBuilder, bidderData, extClass);
         }
 
         return JavaFile.builder("org.prebid.server.bidder."
@@ -146,11 +148,12 @@ public class TemplateProcessing {
                 .build();
     }
 
-    //TODO
     private static void modifyImps(TypeSpec.Builder classBuilder, BidderData bidderData, ClassName extClass) {
         final List<Transformation> impModifications = bidderData.getBidder().getTransformations().stream()
                 .filter(transformation -> transformation.getTarget().contains("imp"))
-                .peek(transformation -> transformation.setTarget(StringUtils.replace(transformation.getTarget(), "imp.", "")))
+                .map(transformation -> new Transformation(
+                        StringUtils.replace(transformation.getTarget(), "imp.", ""),
+                        transformation.getStaticValue(), transformation.getFrom()))
                 .collect(Collectors.toList());
 
         final List<Transformation> staticChanges = impModifications.stream()
@@ -174,15 +177,23 @@ public class TemplateProcessing {
 
             if (!staticChanges.isEmpty()) {
                 for (Transformation trans : staticChanges) {
-                    modifyImps.addCode("." + trans.getTarget() + "(" + trans.getStaticValue() + ")\n");
+                    final String target = trans.getTarget();
+                    final String staticValue = trans.getStaticValue();
+                    final String[] split = StringUtils.split(target, ".");
+                    if (split.length == 2) {
+                        modifyImps.addCode("." + split[0] + "(imp.get" + StringUtils.capitalize(split[0])
+                                + "().toBuilder()." + split[1] + "(" + staticValue + ").build())\n");
+                    } else {
+                        modifyImps.addCode("." + target + "(" + staticValue + ")\n");
+                    }
                 }
             }
-            if (!extChanges.isEmpty()){
-                for (Transformation trans : extChanges){
+            if (!extChanges.isEmpty()) {
+                for (Transformation trans : extChanges) {
                     final String target = trans.getTarget();
                     final String value = trans.getFrom();
                     final String[] split = StringUtils.split(target, ".");
-                    if (split.length > 1) {
+                    if (split.length == 2) {
                         modifyImps.addCode("." + split[0] + "(imp.get" + StringUtils.capitalize(split[0])
                                 + "().toBuilder()." + split[1] + "(impExt.get" + StringUtils.capitalize(value)
                                 + "()).build())\n");
@@ -196,11 +207,68 @@ public class TemplateProcessing {
         }
     }
 
-    //TODO
     private static void modifyRequest(TypeSpec.Builder classBuilder, BidderData bidderData, ClassName extClass) {
         final List<Transformation> requestModifications = bidderData.getBidder().getTransformations().stream()
                 .filter(transformation -> !transformation.getTarget().contains("imp"))
                 .collect(Collectors.toList());
+
+        requestModifications.forEach(System.out::println);
+
+        final List<Transformation> staticChanges = requestModifications.stream()
+                .filter(transformation -> StringUtils.isNotBlank(transformation.getStaticValue()))
+                .collect(Collectors.toList());
+
+        final List<Transformation> extChanges = requestModifications.stream()
+                .filter(transformation -> StringUtils.isNotBlank(transformation.getFrom()))
+                .peek(transformation -> transformation.setFrom(StringUtils.replace(transformation.getFrom(), "ext.", "")))
+                .collect(Collectors.toList());
+
+        if (!staticChanges.isEmpty() || !extChanges.isEmpty()) {
+            final ClassName bidRequest = ClassName.get("com.iab.openrtb.request", "BidRequest");
+            final ClassName impWithExt = ClassName.get("org.prebid.server.bidder.model", "ImpWithExt");
+            final MethodSpec.Builder modifyRequest = MethodSpec.methodBuilder("modifyRequest")
+                    .addModifiers(Modifier.PROTECTED)
+                    .addAnnotation(Override.class)
+                    .addParameter(bidRequest, "bidRequest")
+                    .addParameter(bidRequest.nestedClass("BidRequestBuilder"), "requestBuilder")
+                    .addParameter(ParameterizedTypeName.get(ClassName.get(List.class),
+                            ParameterizedTypeName.get(impWithExt, extClass)), "impsWithExts")
+                    .addCode("final " + extClass.simpleName() + " impExt = impsWithExts.stream()\n"
+                            + ".map(ImpWithExt::getImpExt)\n"
+                            + ".filter($T::nonNull)\n"
+                            + ".findFirst().orElse(null);\n\n"
+                            + "requestBuilder", Objects.class);
+
+            if (!staticChanges.isEmpty()) {
+                for (Transformation trans : staticChanges) {
+                    final String target = trans.getTarget();
+                    final String staticValue = trans.getStaticValue();
+                    final String[] split = StringUtils.split(target, ".");
+                    if (split.length == 2) {
+                        modifyRequest.addCode("\n." + split[0] + "(bidRequest.get" + StringUtils.capitalize(split[0])
+                                + "().toBuilder()." + split[1] + "(" + staticValue + ").build())\n");
+                    } else {
+                        modifyRequest.addCode("\n." + target + "(" + staticValue + ")");
+                    }
+                }
+            }
+            if (!extChanges.isEmpty()) {
+                for (Transformation trans : extChanges) {
+                    final String target = trans.getTarget();
+                    final String value = trans.getFrom();
+                    final String[] split = StringUtils.split(target, ".");
+                    if (split.length == 2) {
+                        modifyRequest.addCode("\n." + split[0] + "(bidRequest.get" + StringUtils.capitalize(split[0])
+                                + "().toBuilder()." + split[1] + "(impExt.get" + StringUtils.capitalize(value)
+                                + "().toString()).build())");
+                    } else {
+                        modifyRequest.addCode("\n." + target + "(impExt.get" + StringUtils.capitalize(value) + "())");
+                    }
+                }
+            }
+            modifyRequest.addCode(";\n");
+            classBuilder.addMethod(modifyRequest.build());
+        }
     }
 
     private static void writeBidderFile(JavaFile bidderFile, BidderData bidderData) throws IOException {

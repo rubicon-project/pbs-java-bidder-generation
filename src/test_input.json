@@ -43,16 +43,20 @@
         "staticValue": "\"test\""
       },
       {
-        "target": "at",
-        "staticValue": 1
-      },
-      {
         "target": "imp.tagid",
         "from": "ext.pubId"
       },
       {
         "target": "imp.banner.id",
         "from": "ext.pubId"
+      },
+      {
+        "target": "at",
+        "staticValue": 1
+      },
+      {
+        "target": "site.id",
+        "from": "ext.zoneId"
       }
     ]
   }
