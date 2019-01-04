@@ -26,6 +26,7 @@ Steps:
 
 1. Clone the bidder-generation-tool repository with "git clone git@github.rp-core.com:rgoncharuk/bidder-generation-tool.git" command
 
-2. Run with command "mvn clean package exec:java -Dexec.args="arg1 arg2", where arg1 is input .json file with bidder data and arg2 - path to PBS server directory. Path can be relative to bidder-generation-tool or absolute, separated by space only, e.g.: mvn clean package exec:java -Dexec.args="src/test_input.json C:/prebid-server-java"
+2. Run with command `mvn clean package exec:java -Dexec.args="arg1 arg2"`, where arg1 is input .json file with bidder data and arg2 - path to PBS server directory. Path can be relative to bidder-generation-tool or absolute, separated by space only, e.g.: 
+`mvn clean package exec:java -Dexec.args="src/test_input.json C:/prebid-server-java"`
 
 5. After completion you may check the results in your local PBS directory or project.
