@@ -7,8 +7,6 @@ import lombok.Data;
 @Data
 public class PropertiesData {
 
-    String bidderName;
-
     String endpointUrl;
 
     String usersyncerUrl;

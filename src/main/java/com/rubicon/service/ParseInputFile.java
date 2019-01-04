@@ -3,11 +3,11 @@ package com.rubicon.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rubicon.model.BidderData;
 import com.rubicon.model.MetaInfoData;
-import com.rubicon.model.PropertiesData;
-import com.rubicon.model.UsersyncerData;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ParseInputFile {
 
@@ -22,9 +22,11 @@ public class ParseInputFile {
         }
     }
 
-    public static PropertiesData parsePropertiesData(BidderData bidderData) {
-        final PropertiesData propertiesData = bidderData.getProperties();
-        propertiesData.setBidderName(bidderData.getBidderName());
+    public static Map<String, String> parsePropertiesData(BidderData bidderData) {
+        final Map<String, String> propertiesData = new HashMap<>();
+        propertiesData.put("bidderName", bidderData.getBidderName());
+        propertiesData.put("endpointUrl", bidderData.getProperties().getEndpointUrl());
+        propertiesData.put("usersyncerUrl", bidderData.getProperties().getUsersyncerUrl());
         return propertiesData;
     }
 
@@ -34,9 +36,10 @@ public class ParseInputFile {
         return metaInfoData;
     }
 
-    public static UsersyncerData parseUsersyncerData(BidderData bidderData) {
-        final UsersyncerData usersyncerData = bidderData.getUsersyncer();
-        usersyncerData.setBidderName(bidderData.getBidderName());
+    public static Map<String, String> getUsersyncerData(BidderData bidderData) {
+        final Map<String, String> usersyncerData = new HashMap<>();
+        usersyncerData.put("bidderName", bidderData.getBidderName());
+        usersyncerData.put("cookieFamilyName", bidderData.getCookieFamilyName());
         return usersyncerData;
     }
 }

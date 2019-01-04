@@ -1,5 +1,6 @@
 package com.rubicon.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,7 +10,7 @@ public class Transformation {
 
     String target;
 
-    String staticValue;
+    JsonNode staticValue;
 
     String from;
 }

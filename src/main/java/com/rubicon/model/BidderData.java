@@ -3,19 +3,21 @@ package com.rubicon.model;
 import lombok.Builder;
 import lombok.Value;
 
+import java.util.List;
+
 @Builder
 @Value
 public class BidderData {
 
     String bidderName;
 
+    String cookieFamilyName;
+
     PropertiesData properties;
 
     MetaInfoData metaInfo;
 
-    UsersyncerData usersyncer;
+    List<BidderParam> bidderParams;
 
-    ExtData ext;
-
-    BidderImplData bidder;
+    List<Transformation> transformations;
 }

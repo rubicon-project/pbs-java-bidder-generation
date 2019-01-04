@@ -1,5 +1,6 @@
 {
   "bidderName": "rossBidder",
+  "cookieFamilyName": "ross",
   "properties": {
     "endpointUrl": "https://test.rossbidder.com/openrtb",
     "usersyncerUrl": "https://rtb.rossbidder.com/usersyncer"
@@ -16,48 +17,40 @@
     ],
     "vendorId": 66
   },
-  "usersyncer": {
-    "cookieFamilyName": "ross",
-    "usersyncInfoType": "redirect"
-  },
-  "ext": {
-    "fields": [
-      {
-        "fieldName": "pubId",
-        "type": "String"
-      },
-      {
-        "fieldName": "zoneId",
-        "type": "Integer"
-      }
-    ]
-  },
-  "bidder": {
-    "transformations": [
-      {
-        "target": "imp.audio",
-        "staticValue": null
-      },
-      {
-        "target": "imp.displaymanagerver",
-        "staticValue": "\"test\""
-      },
-      {
-        "target": "imp.tagid",
-        "from": "ext.pubId"
-      },
-      {
-        "target": "imp.banner.id",
-        "from": "ext.pubId"
-      },
-      {
-        "target": "at",
-        "staticValue": 1
-      },
-      {
-        "target": "site.id",
-        "from": "ext.zoneId"
-      }
-    ]
-  }
+  "bidderParams": [
+    {
+      "name": "pubId",
+      "type": "String"
+    },
+    {
+      "name": "zoneId",
+      "type": "Integer"
+    }
+  ],
+  "transformations": [
+    {
+      "target": "imp.audio",
+      "staticValue": null
+    },
+    {
+      "target": "imp.displaymanagerver",
+      "staticValue": "test"
+    },
+    {
+      "target": "imp.tagid",
+      "from": "impExt.pubId"
+    },
+    {
+      "target": "imp.banner.id",
+      "from": "impExt.pubId"
+    },
+    {
+      "target": "at",
+      "staticValue": 1
+    },
+    {
+      "target": "site.id",
+      "from": "impExt.zoneId"
+    }
+  ]
 }
