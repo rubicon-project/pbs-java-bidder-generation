@@ -7,14 +7,14 @@ See src/test_input.json for example of input json file with data and its format.
 
 Currently supports static (e.g. setting a specific constant value) and dynamic transformations(values taken from bidder-specific extension) for request impressions and static transformations only for other request fields.
 
-The tool generates following files:
-1. {BidderName}Bidder.java - java class that handles bidder request transformations;
-2. ExtImp{BidderName}.java - java class that is a model for bidder-specific extension, passed in request.imp.ext.bidder;
-3. {biddername}.yaml - bidder configuration properties file;
-4. {bidderName}.json - bidder json schema that describes bidder-specific parameters;
-5. {BidderName}MetaInfo.java - java class that describes bidder meta information;
-6. {BidderName}Usersyncer.java - java class that handles user sync;
-7. {BidderName}Configuration.java - bidder java configuration class.
+The tool generates following files in local PBS directory:
+1. `src/main/org/prebid/server/bidder/{biddername}/{BidderName}Bidder.java` - java class that handles bidder request transformations;
+2. `src/main/org/prebid/server/bidder/{biddername}/{BidderName}MetaInfo.java` - java class that describes bidder meta information;
+3. `src/main/org/prebid/server/bidder/{biddername}/{BidderName}Usersyncer.java` - java class that handles user sync;
+4. `src/main/org/prebid/server/spring/config/bidder/{BidderName}Configuration.java` - bidder java configuration class.
+5. `src/main/org/prebid/server/proto/openrtb/ext/request/{biddername}/ExtImp{BidderName}.java` - java class that is a model for bidder-specific extension, passed in request.imp.ext.bidder;
+6. `src/main/resources/bidder-config/{biddername}.yaml` - bidder configuration properties file;
+7. `src/main/resources/static/bidder-params/{bidderName}.json` - bidder json schema that describes bidder-specific parameters;
 
 Prerequisites:
 - Java 8+
