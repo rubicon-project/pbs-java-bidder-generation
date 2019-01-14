@@ -19,6 +19,7 @@ public class Main {
         TemplateProcessing templateProcessing = new TemplateProcessing(inputFile, TEMPLATES_DIRECTORY, pbsDirectory);
 
         templateProcessing.createBidderFiles("meta_info.ftl", "usersyncer.ftl",
-                "properties.ftl", "configuration.ftl", "schema.ftl");
+                "properties.ftl", "configuration.ftl", "schema.ftl",
+                "usersyncer_test.ftl", "bidder_test.ftl");
     }
 }

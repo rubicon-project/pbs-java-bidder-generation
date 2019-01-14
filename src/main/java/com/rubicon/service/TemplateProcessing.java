@@ -49,17 +49,23 @@ public class TemplateProcessing {
     }
 
     public void createBidderFiles(String metaInfoTemplate, String usersyncerTemplate, String propertiesTemplate,
-                                  String bidderConfigTemplate, String schemaTemplate) {
+                                  String bidderConfigTemplate, String schemaTemplate, String usersyncTestTemplate,
+                                  String bidderTestTemplate) {
         try {
             createBidderSchemaJsonFile(schemaTemplate, templatesDirectory, bidderData, pbsDirectory);
             createBidderConfigurationJavaFile(bidderConfigTemplate, templatesDirectory, bidderData, pbsDirectory);
             createMataInfoJavaFile(metaInfoTemplate, templatesDirectory, bidderData, pbsDirectory);
             createUsersyncerJavaFile(usersyncerTemplate, templatesDirectory, bidderData, pbsDirectory);
+            createUsersyncerTestFile(usersyncTestTemplate, templatesDirectory, bidderData, pbsDirectory);
             createPropertiesYamlFile(propertiesTemplate, templatesDirectory, bidderData, pbsDirectory);
 
             final JavaFile extJavaFile = createExtJavaFile(bidderData);
             if (extJavaFile != null) {
                 writeExtFile(extJavaFile, bidderData, pbsDirectory);
+            }
+
+            if (extJavaFile == null && CollectionUtils.isEmpty(bidderData.getTransformations())) {
+                createBidderTestFile(bidderTestTemplate, templatesDirectory, bidderData, pbsDirectory);
             }
 
             final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
@@ -330,37 +336,71 @@ public class TemplateProcessing {
         writer.close();
     }
 
+    private static void createUsersyncerTestFile(String templateFile,
+                                                 String templatesDirectory,
+                                                 BidderData bidderData,
+                                                 String pbsDirectory) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration(templatesDirectory);
+        final Map<String, String> usersyncerData = ParseInputFile.getUsersyncerData(bidderData);
+        final Template usersyncerTestTemplate = cfg.getTemplate(templateFile);
+        final String usersyncerTestFile = makeBidderFile(
+                usersyncerData.get("bidderName"), FileType.TEST_USERSYNCER, pbsDirectory);
+        FileWriter writer = new FileWriter(usersyncerTestFile);
+        usersyncerTestTemplate.process(usersyncerData, writer);
+        writer.close();
+    }
+
+    private static void createBidderTestFile(String templateFile,
+                                             String templatesDirectory,
+                                             BidderData bidderData,
+                                             String pbsDirectory) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration(templatesDirectory);
+        final Template bidderTestTemplate = cfg.getTemplate(templateFile);
+        final String bidderTestFile = makeBidderFile(bidderData.getBidderName(), FileType.TEST_BIDDER, pbsDirectory);
+        FileWriter writer = new FileWriter(bidderTestFile);
+        bidderTestTemplate.process(bidderData, writer);
+        writer.close();
+    }
+
     private static String makeBidderFile(String bidderName, FileType fileType, String pbsDirectory) throws IOException {
         final String capitalizedName = StringUtils.capitalize(bidderName);
         final String javaFilesPackages = "java/org/prebid/server/";
-        final StringBuilder stringBuilder =
-                new StringBuilder(pbsDirectory).append("/src/main/");
+        final String srcMain = "/src/main/";
+        StringBuilder stringBuilder = new StringBuilder(pbsDirectory);
         switch (fileType) {
             case EXT:
-                stringBuilder.append("java/");
+                stringBuilder.append(srcMain).append("java/");
                 break;
             case BIDDER:
-                stringBuilder.append("java/");
+                stringBuilder.append(srcMain).append("java/");
                 break;
             case META_INFO:
-                stringBuilder.append(javaFilesPackages).append("bidder/").append(bidderName.toLowerCase()).append("/")
-                        .append(capitalizedName).append("MetaInfo.java");
+                stringBuilder.append(srcMain).append(javaFilesPackages).append("bidder/")
+                        .append(bidderName.toLowerCase()).append("/").append(capitalizedName).append("MetaInfo.java");
                 break;
             case USERSYNCER:
-                stringBuilder.append(javaFilesPackages).append("bidder/").append(bidderName.toLowerCase()).append("/")
-                        .append(capitalizedName).append("Usersyncer.java");
+                stringBuilder.append(srcMain).append(javaFilesPackages).append("bidder/")
+                        .append(bidderName.toLowerCase()).append("/").append(capitalizedName).append("Usersyncer.java");
                 break;
             case PROPERTIES:
-                stringBuilder.append("resources/bidder-config/")
+                stringBuilder.append(srcMain).append("resources/bidder-config/")
                         .append(bidderName.toLowerCase()).append(".yaml");
                 break;
             case SCHEMA:
-                stringBuilder.append("resources/static/bidder-params/")
+                stringBuilder.append(srcMain).append("resources/static/bidder-params/")
                         .append(bidderName).append(".json");
                 break;
             case CONFIG:
-                stringBuilder.append(javaFilesPackages).append("spring/config/bidder/")
+                stringBuilder.append(srcMain).append(javaFilesPackages).append("spring/config/bidder/")
                         .append(capitalizedName).append("Configuration.java");
+                break;
+            case TEST_USERSYNCER:
+                stringBuilder.append("/src/test/java/org/prebid/server/bidder/").append(bidderName.toLowerCase())
+                        .append("/").append(capitalizedName).append("UsersyncerTest.java");
+                break;
+            case TEST_BIDDER:
+                stringBuilder.append("/src/test/java/org/prebid/server/bidder/").append(bidderName.toLowerCase())
+                        .append("/").append(capitalizedName).append("BidderTest.java");
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -399,6 +439,8 @@ public class TemplateProcessing {
         PROPERTIES,
         CONFIG,
         EXT,
-        SCHEMA
+        SCHEMA,
+        TEST_USERSYNCER,
+        TEST_BIDDER
     }
 }
