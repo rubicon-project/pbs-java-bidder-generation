@@ -26,7 +26,21 @@ Steps:
 
 1. Clone the bidder-generation-tool repository with "git clone git@github.rp-core.com:rgoncharuk/bidder-generation-tool.git" command
 
-2. Run with command `mvn clean package exec:java -Dexec.args="arg1 arg2"`, where arg1 is input .json file with bidder data and arg2 - path to PBS server directory. Path can be relative to bidder-generation-tool or absolute, separated by space only, e.g.: 
+2. Run with command `mvn clean package exec:java -Dexec.args="arg1 arg2"`, where `arg1` is input .json file with bidder data and `arg2` - path to PBS server directory. Path can be relative to bidder-generation-tool or absolute, separated by space only, e.g.: 
 `mvn clean package exec:java -Dexec.args="src/test_input.json C:/prebid-server-java"`
 
-5. After completion you may check the results in your local PBS directory or project.
+3. After completion you may check the results in your local PBS directory or project.
+
+## Spring Boot update
+
+Added POST /generate endpoint that consumes .json bidder properties file and generates necessary PBS files from it.
+
+Steps:
+
+1. Same as above;
+
+2. Run with command `mvn spring-boot:run -Dspring-boot.run.arguments="arg1"`, where `arg1` is a path to PBS server directory;
+
+3. Send a POST request to `http://localhost:8080/generate` with a header `Content-Type : application/json` and json body containing bidder description properties.
+
+4. Check the results in your local PBS directory or project.
