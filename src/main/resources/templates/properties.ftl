@@ -1,4 +1,4 @@
-adapter:
+adapters:
   ${bidderName?lower_case}:
     enabled: false
     endpoint: ${endpointUrl}

@@ -7,7 +7,7 @@ import org.prebid.server.proto.response.UsersyncInfo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
-public class ${bidderName?cap_first}UsersyncerTest extends VertxTest {
+public class ${bidderName?cap_first}UsersyncerTest {
 
     @Test
     public void creationShouldFailOnNullArguments() {

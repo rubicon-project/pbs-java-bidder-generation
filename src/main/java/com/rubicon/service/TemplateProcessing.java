@@ -38,14 +38,59 @@ import java.util.stream.Collectors;
 
 public class TemplateProcessing {
 
-    private final String templatesDirectory;
-    private final BidderData bidderData;
-    private final String pbsDirectory;
+    private String templatesDirectory;
+    private BidderData bidderData;
+    private String pbsDirectory;
+
+    private String metaInfoTemplate;
+    private String usersyncerTemplate;
+    private String propertiesTemplate;
+    private String bidderConfigTemplate;
+    private String schemaTemplate;
+    private String usersyncTestTemplate;
+    private String bidderTestTemplate;
 
     public TemplateProcessing(String inputFile, String templatesDirectory, String pbsDirectory) {
         this.templatesDirectory = templatesDirectory;
         this.bidderData = ParseInputFile.parseInputFile(inputFile);
         this.pbsDirectory = pbsDirectory;
+    }
+
+    // constructor for spring
+    public TemplateProcessing(String templatesDirectory, String metaInfoTemplate, String usersyncerTemplate,
+                              String propertiesTemplate, String bidderConfigTemplate, String schemaTemplate,
+                              String usersyncTestTemplate, String bidderTestTemplate) {
+        this.templatesDirectory = templatesDirectory;
+        this.metaInfoTemplate = metaInfoTemplate;
+        this.usersyncerTemplate = usersyncerTemplate;
+        this.propertiesTemplate = propertiesTemplate;
+        this.bidderConfigTemplate = bidderConfigTemplate;
+        this.schemaTemplate = schemaTemplate;
+        this.usersyncTestTemplate = usersyncTestTemplate;
+        this.bidderTestTemplate = bidderTestTemplate;
+    }
+
+    // overloaded method for String boot
+    public void createBidderFiles(BidderData bidderData, String pbsDirectory) throws IOException, TemplateException {
+
+        createBidderSchemaJsonFile(schemaTemplate, templatesDirectory, bidderData, pbsDirectory);
+        createBidderConfigurationJavaFile(bidderConfigTemplate, templatesDirectory, bidderData, pbsDirectory);
+        createMataInfoJavaFile(metaInfoTemplate, templatesDirectory, bidderData, pbsDirectory);
+        createUsersyncerJavaFile(usersyncerTemplate, templatesDirectory, bidderData, pbsDirectory);
+        createUsersyncerTestFile(usersyncTestTemplate, templatesDirectory, bidderData, pbsDirectory);
+        createPropertiesYamlFile(propertiesTemplate, templatesDirectory, bidderData, pbsDirectory);
+
+        final JavaFile extJavaFile = createExtJavaFile(bidderData);
+        if (extJavaFile != null) {
+            writeExtFile(extJavaFile, bidderData, pbsDirectory);
+        }
+
+        if (extJavaFile == null && CollectionUtils.isEmpty(bidderData.getTransformations())) {
+            createBidderTestFile(bidderTestTemplate, templatesDirectory, bidderData, pbsDirectory);
+        }
+
+        final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
+        writeBidderFile(bidderJavaFile, bidderData, pbsDirectory);
     }
 
     public void createBidderFiles(String metaInfoTemplate, String usersyncerTemplate, String propertiesTemplate,
@@ -85,6 +130,7 @@ public class TemplateProcessing {
         final String bidderName = bidderData.getBidderName();
         final TypeSpec.Builder extensionClassBuilder =
                 TypeSpec.classBuilder("ExtImp" + StringUtils.capitalize(bidderName))
+                        .addJavadoc("Defines the contract for bidrequest.imp[i].ext." + bidderName + "\n")
                         .addModifiers(Modifier.PUBLIC)
                         .addAnnotation(properties.size() > 4 ? Builder.class : AllArgsConstructor.class)
                         .addAnnotation(Value.class);
