@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
 public class TemplateProcessing {
 
     private String templatesDirectory;
-    private BidderData bidderData;
-    private String pbsDirectory;
 
     private String metaInfoTemplate;
     private String usersyncerTemplate;
@@ -50,13 +48,7 @@ public class TemplateProcessing {
     private String usersyncTestTemplate;
     private String bidderTestTemplate;
 
-    public TemplateProcessing(String inputFile, String templatesDirectory, String pbsDirectory) {
-        this.templatesDirectory = templatesDirectory;
-        this.bidderData = ParseInputFile.parseInputFile(inputFile);
-        this.pbsDirectory = pbsDirectory;
-    }
-
-    // constructor for spring
+    // constructor for spring bean
     public TemplateProcessing(String templatesDirectory, String metaInfoTemplate, String usersyncerTemplate,
                               String propertiesTemplate, String bidderConfigTemplate, String schemaTemplate,
                               String usersyncTestTemplate, String bidderTestTemplate) {
@@ -71,7 +63,8 @@ public class TemplateProcessing {
     }
 
     // overloaded method for String boot
-    public void createBidderFiles(BidderData bidderData, String pbsDirectory) throws IOException, TemplateException {
+    public void createBidderFiles(BidderData bidderData) throws IOException, TemplateException {
+        final String pbsDirectory = bidderData.getPbsDirectory();
 
         createBidderSchemaJsonFile(schemaTemplate, templatesDirectory, bidderData, pbsDirectory);
         createBidderConfigurationJavaFile(bidderConfigTemplate, templatesDirectory, bidderData, pbsDirectory);
@@ -91,34 +84,6 @@ public class TemplateProcessing {
 
         final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
         writeBidderFile(bidderJavaFile, bidderData, pbsDirectory);
-    }
-
-    public void createBidderFiles(String metaInfoTemplate, String usersyncerTemplate, String propertiesTemplate,
-                                  String bidderConfigTemplate, String schemaTemplate, String usersyncTestTemplate,
-                                  String bidderTestTemplate) {
-        try {
-            createBidderSchemaJsonFile(schemaTemplate, templatesDirectory, bidderData, pbsDirectory);
-            createBidderConfigurationJavaFile(bidderConfigTemplate, templatesDirectory, bidderData, pbsDirectory);
-            createMataInfoJavaFile(metaInfoTemplate, templatesDirectory, bidderData, pbsDirectory);
-            createUsersyncerJavaFile(usersyncerTemplate, templatesDirectory, bidderData, pbsDirectory);
-            createUsersyncerTestFile(usersyncTestTemplate, templatesDirectory, bidderData, pbsDirectory);
-            createPropertiesYamlFile(propertiesTemplate, templatesDirectory, bidderData, pbsDirectory);
-
-            final JavaFile extJavaFile = createExtJavaFile(bidderData);
-            if (extJavaFile != null) {
-                writeExtFile(extJavaFile, bidderData, pbsDirectory);
-            }
-
-            if (extJavaFile == null && CollectionUtils.isEmpty(bidderData.getTransformations())) {
-                createBidderTestFile(bidderTestTemplate, templatesDirectory, bidderData, pbsDirectory);
-            }
-
-            final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
-            writeBidderFile(bidderJavaFile, bidderData, pbsDirectory);
-
-        } catch (IOException | TemplateException e) {
-            e.printStackTrace();
-        }
     }
 
     private static JavaFile createExtJavaFile(BidderData bidderData) {

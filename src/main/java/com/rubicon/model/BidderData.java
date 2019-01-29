@@ -3,6 +3,7 @@ package com.rubicon.model;
 import lombok.Builder;
 import lombok.Value;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -10,10 +11,13 @@ import java.util.List;
 @Value
 public class BidderData {
 
-    @NotNull
+    @NotBlank
+    String pbsDirectory;
+
+    @NotBlank
     String bidderName;
 
-    @NotNull
+    @NotBlank
     String cookieFamilyName;
 
     PropertiesData properties;

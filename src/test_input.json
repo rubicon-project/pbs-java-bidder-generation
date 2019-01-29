@@ -1,4 +1,5 @@
 {
+  "pbsDirectory": "C:/Users/rostyslav.goncharuk/IdeaProjects/prebid-server-java",
   "bidderName": "newBidder",
   "cookieFamilyName": "newBidder",
   "properties": {

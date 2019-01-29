@@ -25,7 +25,7 @@ public class GenerationRestController {
     @ResponseStatus(code = HttpStatus.OK, reason = "Generating bidder files")
     public void generate(@Validated @RequestBody BidderData bidderData) {
         try {
-            templateProcessing.createBidderFiles(bidderData, Application.getPbsDirectory());
+            templateProcessing.createBidderFiles(bidderData);
         } catch (IOException | TemplateException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
