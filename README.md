@@ -16,9 +16,9 @@ The tool generates following files in local PBS directory:
 6. `src/main/resources/bidder-config/{biddername}.yaml` - bidder configuration properties file;
 7. `src/main/resources/static/bidder-params/{bidderName}.json` - bidder json schema that describes bidder-specific parameters;
 8. `src/test/java/org/prebid/server/bidder/{biddername}/{BidderName}UsersyncerTest.java` - java test class for bidder's Usersyncer;
-9  `src/test/java/org/prebid/server/bidder/{biddername}/{BidderName}BidderTest.java` - java test class for Bidder class**
+9. `src/test/java/org/prebid/server/bidder/{biddername}/{BidderName}BidderTest.java` - java test class for Bidder class**
 
- **NOTE: ATM generates tests only for cases when bidder has no extension and doesn't apply any transformations.
+ ***NOTE: ATM generates tests only for cases when bidder has no extension and doesn't apply any transformations.**
 
 Prerequisites:
 - Java 8+
