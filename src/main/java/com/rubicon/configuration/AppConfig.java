@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class AppConfig {
 
     @Bean
-    public TemplateProcessing templateProcessing(){
+    public TemplateProcessing templateProcessing() {
         return new TemplateProcessing("src/main/resources/templates", "meta_info.ftl",
                 "usersyncer.ftl", "properties.ftl",
                 "configuration.ftl", "schema.ftl",

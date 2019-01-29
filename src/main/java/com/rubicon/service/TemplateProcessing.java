@@ -78,12 +78,12 @@ public class TemplateProcessing {
             writeExtFile(extJavaFile, bidderData, pbsDirectory);
         }
 
+        final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
+        writeBidderFile(bidderJavaFile, bidderData, pbsDirectory);
+
         if (extJavaFile == null && CollectionUtils.isEmpty(bidderData.getTransformations())) {
             createBidderTestFile(bidderTestTemplate, templatesDirectory, bidderData, pbsDirectory);
         }
-
-        final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
-        writeBidderFile(bidderJavaFile, bidderData, pbsDirectory);
     }
 
     private static JavaFile createExtJavaFile(BidderData bidderData) {
@@ -284,7 +284,7 @@ public class TemplateProcessing {
                                                BidderData bidderData,
                                                String pbsDirectory) throws IOException, TemplateException {
         final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final MetaInfoData metaInfoData = ParseInputFile.parseMetaInfoData(bidderData);
+        final MetaInfoData metaInfoData = BidderDataUtil.parseMetaInfoData(bidderData);
         final Template metaInfoTemplate = cfg.getTemplate(templateFile);
         final String bidderFile = makeBidderFile(metaInfoData.getBidderName(), FileType.META_INFO, pbsDirectory);
         final FileWriter writer = new FileWriter(bidderFile);
@@ -297,7 +297,7 @@ public class TemplateProcessing {
                                                  BidderData bidderData,
                                                  String pbsDirectory) throws IOException, TemplateException {
         final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final Map<String, String> propertiesData = ParseInputFile.parsePropertiesData(bidderData);
+        final Map<String, String> propertiesData = BidderDataUtil.parsePropertiesData(bidderData);
         final Template propertiesTemplate = cfg.getTemplate(templateFile);
         final String propertiesFile = makeBidderFile(propertiesData.get("bidderName"), FileType.PROPERTIES, pbsDirectory);
         FileWriter writer = new FileWriter(propertiesFile);
@@ -310,7 +310,7 @@ public class TemplateProcessing {
                                                  BidderData bidderData,
                                                  String pbsDirectory) throws IOException, TemplateException {
         final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final Map<String, String> usersyncerData = ParseInputFile.getUsersyncerData(bidderData);
+        final Map<String, String> usersyncerData = BidderDataUtil.getUsersyncerData(bidderData);
         final Template usersyncerTemplate = cfg.getTemplate(templateFile);
         final String usersyncerFile = makeBidderFile(usersyncerData.get("bidderName"), FileType.USERSYNCER, pbsDirectory);
         FileWriter writer = new FileWriter(usersyncerFile);
@@ -352,7 +352,7 @@ public class TemplateProcessing {
                                                  BidderData bidderData,
                                                  String pbsDirectory) throws IOException, TemplateException {
         final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final Map<String, String> usersyncerData = ParseInputFile.getUsersyncerData(bidderData);
+        final Map<String, String> usersyncerData = BidderDataUtil.getUsersyncerData(bidderData);
         final Template usersyncerTestTemplate = cfg.getTemplate(templateFile);
         final String usersyncerTestFile = makeBidderFile(
                 usersyncerData.get("bidderName"), FileType.TEST_USERSYNCER, pbsDirectory);

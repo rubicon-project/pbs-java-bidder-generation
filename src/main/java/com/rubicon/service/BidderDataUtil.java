@@ -4,23 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rubicon.model.BidderData;
 import com.rubicon.model.MetaInfoData;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ParseInputFile {
+public class BidderDataUtil {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-    public static BidderData parseInputFile(String inputFile) {
-        try (FileReader reader = new FileReader(inputFile)) {
-            return OBJECT_MAPPER.convertValue(OBJECT_MAPPER.readTree(reader), BidderData.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     public static Map<String, String> parsePropertiesData(BidderData bidderData) {
         final Map<String, String> propertiesData = new HashMap<>();
