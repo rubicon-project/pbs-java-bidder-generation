@@ -1,8 +1,7 @@
 package com.rubicon.controller;
 
-import com.rubicon.Application;
 import com.rubicon.model.BidderData;
-import com.rubicon.service.TemplateProcessing;
+import com.rubicon.service.BidderService;
 import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,13 +18,13 @@ import java.io.IOException;
 public class GenerationRestController {
 
     @Autowired
-    private TemplateProcessing templateProcessing;
+    private BidderService bidderService;
 
     @PostMapping(value = "/generate", consumes = "application/json")
     @ResponseStatus(code = HttpStatus.OK, reason = "Generating bidder files")
     public void generate(@Validated @RequestBody BidderData bidderData) {
         try {
-            templateProcessing.createBidderFiles(bidderData);
+            bidderService.generateBidderFiles(bidderData);
         } catch (IOException | TemplateException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

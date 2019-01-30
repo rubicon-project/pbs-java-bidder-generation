@@ -3,6 +3,8 @@ package com.rubicon.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @AllArgsConstructor
@@ -11,10 +13,13 @@ public class PropertiesData {
 
     String bidderName;
 
+    @NotBlank
     String endpointUrl;
 
+    @NotBlank
     String usersyncerUrl;
 
+    @NotBlank
     String maintainerEmail;
 
     List<String> appMediaTypes;
@@ -23,5 +28,6 @@ public class PropertiesData {
 
     List<String> supportedVendors;
 
+    @NotNull
     Integer vendorId;
 }
