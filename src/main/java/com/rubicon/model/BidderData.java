@@ -17,13 +17,11 @@ public class BidderData {
     @NotBlank
     String bidderName;
 
-    @NotBlank
-    String cookieFamilyName;
-
-    PropertiesData properties;
+    @NotNull
+    UsersyncerData usersyncer;
 
     @NotNull
-    MetaInfoData metaInfo;
+    PropertiesData properties;
 
     List<BidderParam> bidderParams;
 

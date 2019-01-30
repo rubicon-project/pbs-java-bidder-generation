@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.rubicon.model.BidderData;
 import com.rubicon.model.BidderParam;
-import com.rubicon.model.MetaInfoData;
+import com.rubicon.model.PropertiesData;
 import com.rubicon.model.Transformation;
+import com.rubicon.model.UsersyncerData;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -22,6 +23,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
 import java.io.File;
@@ -36,53 +38,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Service
 public class TemplateProcessing {
 
-    private String templatesDirectory;
+    private static final String TEMPLATES_DIRECTORY = "src/main/resources/templates";
+    private static final String USERSYNCER_TEMPLATE = "usersyncer.ftl";
+    private static final String PROPERTIES_TEMPLATE = "properties.ftl";
+    private static final String BIDDER_CONFIG_TEMPLATE = "configuration.ftl";
+    private static final String SCHEMA_TEMPLATE = "schema.ftl";
+    private static final String USERSYNC_TEST_TEMPLATE = "usersyncer_test.ftl";
+    private static final String SIMPLE_BIDDER_TEST_TEMPLATE = "bidder_test.ftl";
 
-    private String metaInfoTemplate;
-    private String usersyncerTemplate;
-    private String propertiesTemplate;
-    private String bidderConfigTemplate;
-    private String schemaTemplate;
-    private String usersyncTestTemplate;
-    private String bidderTestTemplate;
-
-    // constructor for spring bean
-    public TemplateProcessing(String templatesDirectory, String metaInfoTemplate, String usersyncerTemplate,
-                              String propertiesTemplate, String bidderConfigTemplate, String schemaTemplate,
-                              String usersyncTestTemplate, String bidderTestTemplate) {
-        this.templatesDirectory = templatesDirectory;
-        this.metaInfoTemplate = metaInfoTemplate;
-        this.usersyncerTemplate = usersyncerTemplate;
-        this.propertiesTemplate = propertiesTemplate;
-        this.bidderConfigTemplate = bidderConfigTemplate;
-        this.schemaTemplate = schemaTemplate;
-        this.usersyncTestTemplate = usersyncTestTemplate;
-        this.bidderTestTemplate = bidderTestTemplate;
-    }
-
-    // overloaded method for String boot
     public void createBidderFiles(BidderData bidderData) throws IOException, TemplateException {
-        final String pbsDirectory = bidderData.getPbsDirectory();
 
-        createBidderSchemaJsonFile(schemaTemplate, templatesDirectory, bidderData, pbsDirectory);
-        createBidderConfigurationJavaFile(bidderConfigTemplate, templatesDirectory, bidderData, pbsDirectory);
-        createMataInfoJavaFile(metaInfoTemplate, templatesDirectory, bidderData, pbsDirectory);
-        createUsersyncerJavaFile(usersyncerTemplate, templatesDirectory, bidderData, pbsDirectory);
-        createUsersyncerTestFile(usersyncTestTemplate, templatesDirectory, bidderData, pbsDirectory);
-        createPropertiesYamlFile(propertiesTemplate, templatesDirectory, bidderData, pbsDirectory);
+        createPropertiesYamlFile(bidderData);
+        createUsersyncerJavaFile(bidderData);
+        createUsersyncerTestFile(bidderData);
+        createBidderSchemaJsonFile(bidderData);
+        createBidderConfigurationJavaFile(bidderData);
 
         final JavaFile extJavaFile = createExtJavaFile(bidderData);
         if (extJavaFile != null) {
-            writeExtFile(extJavaFile, bidderData, pbsDirectory);
+            writeExtFile(extJavaFile, bidderData);
         }
 
         final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
-        writeBidderFile(bidderJavaFile, bidderData, pbsDirectory);
+        writeBidderFile(bidderJavaFile, bidderData);
 
         if (extJavaFile == null && CollectionUtils.isEmpty(bidderData.getTransformations())) {
-            createBidderTestFile(bidderTestTemplate, templatesDirectory, bidderData, pbsDirectory);
+            createSimpleBidderTestFile(bidderData);
         }
     }
 
@@ -125,8 +109,8 @@ public class TemplateProcessing {
         return "java.lang." + inputName;
     }
 
-    private static void writeExtFile(JavaFile extFile, BidderData bidderData, String pbsDirectory) throws IOException {
-        final String extFilePath = makeBidderFile(bidderData.getBidderName(), FileType.EXT, pbsDirectory);
+    private static void writeExtFile(JavaFile extFile, BidderData bidderData) throws IOException {
+        final String extFilePath = makeBidderFile(bidderData, FileType.EXT);
         extFile.writeTo(Paths.get(extFilePath));
     }
 
@@ -274,120 +258,85 @@ public class TemplateProcessing {
         }
     }
 
-    private static void writeBidderFile(JavaFile bidderFile, BidderData bidderData, String pbsDirectory) throws IOException {
-        final String bidderFilePath = makeBidderFile(bidderData.getBidderName(), FileType.BIDDER, pbsDirectory);
+    private static void writeBidderFile(JavaFile bidderFile, BidderData bidderData) throws IOException {
+        final String bidderFilePath = makeBidderFile(bidderData, FileType.BIDDER);
         bidderFile.writeTo(Paths.get(bidderFilePath));
     }
 
-    private static void createMataInfoJavaFile(String templateFile,
-                                               String templatesDirectory,
-                                               BidderData bidderData,
-                                               String pbsDirectory) throws IOException, TemplateException {
-        final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final MetaInfoData metaInfoData = BidderDataUtil.parseMetaInfoData(bidderData);
-        final Template metaInfoTemplate = cfg.getTemplate(templateFile);
-        final String bidderFile = makeBidderFile(metaInfoData.getBidderName(), FileType.META_INFO, pbsDirectory);
-        final FileWriter writer = new FileWriter(bidderFile);
-        metaInfoTemplate.process(metaInfoData, writer);
-        writer.close();
-    }
-
-    private static void createPropertiesYamlFile(String templateFile,
-                                                 String templatesDirectory,
-                                                 BidderData bidderData,
-                                                 String pbsDirectory) throws IOException, TemplateException {
-        final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final Map<String, String> propertiesData = BidderDataUtil.parsePropertiesData(bidderData);
-        final Template propertiesTemplate = cfg.getTemplate(templateFile);
-        final String propertiesFile = makeBidderFile(propertiesData.get("bidderName"), FileType.PROPERTIES, pbsDirectory);
+    private static void createPropertiesYamlFile(BidderData bidderData) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration();
+        final PropertiesData propertiesData = BidderDataUtil.preparePropertiesData(bidderData);
+        final Template propertiesTemplate = cfg.getTemplate(PROPERTIES_TEMPLATE);
+        final String propertiesFile = makeBidderFile(bidderData, FileType.PROPERTIES);
         FileWriter writer = new FileWriter(propertiesFile);
         propertiesTemplate.process(propertiesData, writer);
         writer.close();
     }
 
-    private static void createUsersyncerJavaFile(String templateFile,
-                                                 String templatesDirectory,
-                                                 BidderData bidderData,
-                                                 String pbsDirectory) throws IOException, TemplateException {
-        final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final Map<String, String> usersyncerData = BidderDataUtil.getUsersyncerData(bidderData);
-        final Template usersyncerTemplate = cfg.getTemplate(templateFile);
-        final String usersyncerFile = makeBidderFile(usersyncerData.get("bidderName"), FileType.USERSYNCER, pbsDirectory);
+    private static void createUsersyncerJavaFile(BidderData bidderData) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration();
+        final UsersyncerData usersyncerData = BidderDataUtil.getUsersyncerData(bidderData);
+        final Template usersyncerTemplate = cfg.getTemplate(USERSYNCER_TEMPLATE);
+        final String usersyncerFile = makeBidderFile(bidderData, FileType.USERSYNCER);
         FileWriter writer = new FileWriter(usersyncerFile);
         usersyncerTemplate.process(usersyncerData, writer);
         writer.close();
     }
 
-    private static void createBidderConfigurationJavaFile(String templateFile,
-                                                          String templatesDirectory,
-                                                          BidderData bidderData,
-                                                          String pbsDirectory) throws IOException, TemplateException {
-        final Configuration cfg = defaultConfiguration(templatesDirectory);
+    private static void createBidderConfigurationJavaFile(BidderData bidderData) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration();
         final String bidderName = bidderData.getBidderName();
-        final Template bidderConfigTemplate = cfg.getTemplate(templateFile);
-        final String bidderConfigFile = makeBidderFile(bidderName, FileType.CONFIG, pbsDirectory);
+        final Template bidderConfigTemplate = cfg.getTemplate(BIDDER_CONFIG_TEMPLATE);
+        final String bidderConfigFile = makeBidderFile(bidderData, FileType.CONFIG);
         FileWriter writer = new FileWriter(bidderConfigFile);
         bidderConfigTemplate.process(Collections.singletonMap("bidderName", bidderName), writer);
         writer.close();
     }
 
-    private static void createBidderSchemaJsonFile(String templateFile,
-                                                   String templatesDirectory,
-                                                   BidderData bidderData,
-                                                   String pbsDirectory) throws IOException, TemplateException {
-        final Configuration cfg = defaultConfiguration(templatesDirectory);
+    private static void createBidderSchemaJsonFile(BidderData bidderData) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration();
         final Map<String, Object> schemaData = new HashMap<>();
         schemaData.put("bidderParams", bidderData.getBidderParams());
         schemaData.put("bidderName", bidderData.getBidderName());
 
-        final Template schemaTemplate = cfg.getTemplate(templateFile);
-        final String schemaFile = makeBidderFile(bidderData.getBidderName(), FileType.SCHEMA, pbsDirectory);
+        final Template schemaTemplate = cfg.getTemplate(SCHEMA_TEMPLATE);
+        final String schemaFile = makeBidderFile(bidderData, FileType.SCHEMA);
         FileWriter writer = new FileWriter(schemaFile);
         schemaTemplate.process(schemaData, writer);
         writer.close();
     }
 
-    private static void createUsersyncerTestFile(String templateFile,
-                                                 String templatesDirectory,
-                                                 BidderData bidderData,
-                                                 String pbsDirectory) throws IOException, TemplateException {
-        final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final Map<String, String> usersyncerData = BidderDataUtil.getUsersyncerData(bidderData);
-        final Template usersyncerTestTemplate = cfg.getTemplate(templateFile);
-        final String usersyncerTestFile = makeBidderFile(
-                usersyncerData.get("bidderName"), FileType.TEST_USERSYNCER, pbsDirectory);
+    private static void createUsersyncerTestFile(BidderData bidderData) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration();
+        final UsersyncerData usersyncerData = BidderDataUtil.getUsersyncerData(bidderData);
+        final Template usersyncerTestTemplate = cfg.getTemplate(USERSYNC_TEST_TEMPLATE);
+        final String usersyncerTestFile = makeBidderFile(bidderData, FileType.TEST_USERSYNCER);
         FileWriter writer = new FileWriter(usersyncerTestFile);
         usersyncerTestTemplate.process(usersyncerData, writer);
         writer.close();
     }
 
-    private static void createBidderTestFile(String templateFile,
-                                             String templatesDirectory,
-                                             BidderData bidderData,
-                                             String pbsDirectory) throws IOException, TemplateException {
-        final Configuration cfg = defaultConfiguration(templatesDirectory);
-        final Template bidderTestTemplate = cfg.getTemplate(templateFile);
-        final String bidderTestFile = makeBidderFile(bidderData.getBidderName(), FileType.TEST_BIDDER, pbsDirectory);
+    private static void createSimpleBidderTestFile(BidderData bidderData) throws IOException, TemplateException {
+        final Configuration cfg = defaultConfiguration();
+        final Template bidderTestTemplate = cfg.getTemplate(SIMPLE_BIDDER_TEST_TEMPLATE);
+        final String bidderTestFile = makeBidderFile(bidderData, FileType.TEST_BIDDER);
         FileWriter writer = new FileWriter(bidderTestFile);
         bidderTestTemplate.process(bidderData, writer);
         writer.close();
     }
 
-    private static String makeBidderFile(String bidderName, FileType fileType, String pbsDirectory) throws IOException {
+    private static String makeBidderFile(BidderData bidderData, FileType fileType) throws IOException {
+        final String bidderName = bidderData.getBidderName();
         final String capitalizedName = StringUtils.capitalize(bidderName);
         final String javaFilesPackages = "java/org/prebid/server/";
         final String srcMain = "/src/main/";
-        StringBuilder stringBuilder = new StringBuilder(pbsDirectory);
+        StringBuilder stringBuilder = new StringBuilder(bidderData.getPbsDirectory());
         switch (fileType) {
             case EXT:
                 stringBuilder.append(srcMain).append("java/");
                 break;
             case BIDDER:
                 stringBuilder.append(srcMain).append("java/");
-                break;
-            case META_INFO:
-                stringBuilder.append(srcMain).append(javaFilesPackages).append("bidder/")
-                        .append(bidderName.toLowerCase()).append("/").append(capitalizedName).append("MetaInfo.java");
                 break;
             case USERSYNCER:
                 stringBuilder.append(srcMain).append(javaFilesPackages).append("bidder/")
@@ -427,10 +376,10 @@ public class TemplateProcessing {
         return filePath;
     }
 
-    private static Configuration defaultConfiguration(String templatesDirectory) {
+    private static Configuration defaultConfiguration() {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
         try {
-            cfg.setDirectoryForTemplateLoading(new File(templatesDirectory));
+            cfg.setDirectoryForTemplateLoading(new File(TEMPLATES_DIRECTORY));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -445,7 +394,6 @@ public class TemplateProcessing {
 
     public enum FileType {
         BIDDER,
-        META_INFO,
         USERSYNCER,
         PROPERTIES,
         CONFIG,

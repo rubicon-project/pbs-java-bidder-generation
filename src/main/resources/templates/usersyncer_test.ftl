@@ -19,8 +19,8 @@ public class ${bidderName?cap_first}UsersyncerTest {
     public void creationShouldInitExpectedUsersyncInfo() {
         // given
         final UsersyncInfo expected = UsersyncInfo.of(
-                "//usersync.org//?ri=partnerId&ru=http%3A%2F%2Fexternal.org%2F%2Fsetuid%3Fbidder%3D${cookieFamilyName}"
-                        + "%26gdpr%3D{{gdpr}}%26gdpr_consent%3D{{gdpr_consent}}%26uid%3D",
+                "//usersync.org/http%3A%2F%2Fexternal.org%2F"
+                        + "${urlPrefix}",
                 "redirect", false);
 
         // when

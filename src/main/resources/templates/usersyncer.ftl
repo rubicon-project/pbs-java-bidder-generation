@@ -22,7 +22,7 @@ public class ${bidderName?cap_first}Usersyncer implements Usersyncer {
      */
     private static UsersyncInfo createUsersyncInfo(String usersyncUrl, String externalUrl) {
         final String redirectUri = HttpUtil.encodeUrl(externalUrl)
-                + "%2Fsetuid%3Fbidder%3D${cookieFamilyName}%26gdpr%3D{{gdpr}}%26gdpr_consent%3D{{gdpr_consent}}%26uid%3D";
+                + "${urlPrefix}";
 
         return UsersyncInfo.of(String.format("%s%s", usersyncUrl, redirectUri), "redirect", false);
     }

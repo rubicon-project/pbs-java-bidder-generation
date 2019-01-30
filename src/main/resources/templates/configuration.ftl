@@ -3,9 +3,10 @@ package org.prebid.server.spring.config.bidder;
 import org.prebid.server.bidder.BidderDeps;
 import org.prebid.server.bidder.Usersyncer;
 import org.prebid.server.bidder.${bidderName?lower_case}.${bidderName?cap_first}Bidder;
-import org.prebid.server.bidder.${bidderName?lower_case}.${bidderName?cap_first}MetaInfo;
 import org.prebid.server.bidder.${bidderName?lower_case}.${bidderName?cap_first}Usersyncer;
+import org.prebid.server.proto.response.BidderInfo;
 import org.prebid.server.spring.config.bidder.model.BidderConfigurationProperties;
+import org.prebid.server.spring.config.bidder.model.MetaInfo;
 import org.prebid.server.spring.env.YamlPropertySourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -37,9 +38,12 @@ public class ${bidderName?cap_first}Configuration {
     @Bean
     BidderDeps ${bidderName}BidderDeps() {
         final Usersyncer usersyncer = new ${bidderName?cap_first}Usersyncer(configProperties.getUsersyncUrl(), externalUrl);
+        final MetaInfo metaInfo = configProperties.getMetaInfo();
         return BidderDepsAssembler.forBidder(BIDDER_NAME)
                 .withConfig(configProperties)
-                .metaInfo(new ${bidderName?cap_first}MetaInfo(configProperties.getEnabled(), configProperties.getPbsEnforcesGdpr()))
+                .metaInfo(BidderInfo.create(configProperties.getEnabled(), metaInfo.getMaintainerEmail(),
+                        metaInfo.getAppMediaTypes(), metaInfo.getSiteMediaTypes(), metaInfo.getSupportedVendors(),
+                        metaInfo.getVendorId(), configProperties.getPbsEnforcesGdpr()))
                 .usersyncer(usersyncer)
                 .bidderCreator(() -> new ${bidderName?cap_first}Bidder(configProperties.getEndpoint()))
                 .assemble();
