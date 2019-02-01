@@ -16,6 +16,9 @@ public class BidderData {
     String pbsDirectory;
 
     @NotBlank
+    String strategy;
+
+    @NotBlank
     String bidderName;
 
     @Valid

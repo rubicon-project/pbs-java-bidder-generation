@@ -25,7 +25,7 @@ class FileCreator {
     }
 
     private static String getPbsFilePath(BidderData bidderData, FileType fileType) {
-        return fileType.filePrefix + resolveFilePackageAndName(bidderData, fileType) + fileType.fileSufix;
+        return fileType.getFilePrefix() + resolveFilePackageAndName(bidderData, fileType) + fileType.getFileSuffix();
     }
 
     private static String resolveFilePackageAndName(BidderData bidderData, FileType fileType) {
@@ -46,25 +46,6 @@ class FileCreator {
                 return bidderName.toLowerCase() + "/" + capitalizedName;
             default:
                 return "";
-        }
-    }
-
-    public enum FileType {
-        BIDDER("/src/main/java/", ""),
-        USERSYNCER("/src/main/java/org/prebid/server/bidder/", "Usersyncer.java"),
-        EXT("/src/main/java/", ""),
-        CONFIG("/src/main/java/org/prebid/server/spring/config/bidder/", "Configuration.java"),
-        PROPERTIES("/src/main/resources/bidder-config/", ".yaml"),
-        SCHEMA("/src/main/resources/static/bidder-params/", ".json"),
-        TEST_USERSYNCER("/src/test/java/org/prebid/server/bidder/", "UsersyncerTest.java"),
-        TEST_BIDDER("/src/test/java/org/prebid/server/bidder/", "BidderTest.java");
-
-        private final String filePrefix;
-        private final String fileSufix;
-
-        FileType(String filePrefix, String fileSufix) {
-            this.filePrefix = filePrefix;
-            this.fileSufix = fileSufix;
         }
     }
 }

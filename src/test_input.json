@@ -1,5 +1,6 @@
 {
   "pbsDirectory": "C:/Users/rostyslav.goncharuk/IdeaProjects/prebid-server-java",
+  "strategy": "SINGLE_REQUEST",
   "bidderName": "newBidder",
   "usersyncer": {
     "cookieFamilyName": "newBidder",
@@ -48,12 +49,48 @@
       "from": "impExt.pubId"
     },
     {
+      "target": "imp.video.placement",
+      "staticValue": 44
+    },
+    {
+      "target": "imp.video.minduration",
+      "from": "imp.banner.pos"
+    },
+    {
+      "target": "imp.banner.format",
+      "staticValue": null
+    },
+    {
+      "target": "imp.banner.format",
+      "staticValue": null
+    },
+    {
+      "target": "imp.id",
+      "from": "imp.banner.id"
+    },
+    {
+      "target": "imp.video.pos",
+      "from": "imp.secure"
+    },
+    {
       "target": "at",
       "staticValue": 1
     },
     {
+      "target": "site.page",
+      "from": "app.publisher.domain"
+    },
+    {
       "target": "site.id",
-      "from": "impExt.zoneId"
+      "staticValue": "33"
+    },
+    {
+      "target": "site.domain",
+      "from": "site.name"
+    },
+    {
+      "target": "site.name",
+      "from": "id"
     }
   ]
 }

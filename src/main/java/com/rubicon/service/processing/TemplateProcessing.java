@@ -46,38 +46,38 @@ public class TemplateProcessing {
     private void createPropertiesYamlFile(BidderData bidderData) throws IOException, TemplateException {
         final PropertiesData propertiesData = bidderData.getProperties();
         propertiesData.setBidderName(bidderData.getBidderName());
-        createFileFromTemplate(bidderData, propertiesData, PROPERTIES_TEMPLATE, FileCreator.FileType.PROPERTIES);
+        createFileFromTemplate(bidderData, propertiesData, PROPERTIES_TEMPLATE, FileType.PROPERTIES);
     }
 
     private void createUsersyncerJavaFile(BidderData bidderData) throws IOException, TemplateException {
         final UsersyncerData usersyncerData = bidderData.getUsersyncer();
         usersyncerData.setBidderName(bidderData.getBidderName());
-        createFileFromTemplate(bidderData, usersyncerData, USERSYNCER_TEMPLATE, FileCreator.FileType.USERSYNCER);
+        createFileFromTemplate(bidderData, usersyncerData, USERSYNCER_TEMPLATE, FileType.USERSYNCER);
     }
 
     private void createBidderConfigurationJavaFile(BidderData bidderData) throws IOException, TemplateException {
-        createFileFromTemplate(bidderData, bidderData, BIDDER_CONFIG_TEMPLATE, FileCreator.FileType.CONFIG);
+        createFileFromTemplate(bidderData, bidderData, BIDDER_CONFIG_TEMPLATE, FileType.CONFIG);
     }
 
     private void createBidderSchemaJsonFile(BidderData bidderData) throws IOException, TemplateException {
         final Map<String, Object> schemaData = new HashMap<>();
         schemaData.put("bidderParams", bidderData.getBidderParams());
         schemaData.put("bidderName", bidderData.getBidderName());
-        createFileFromTemplate(bidderData, schemaData, SCHEMA_TEMPLATE, FileCreator.FileType.SCHEMA);
+        createFileFromTemplate(bidderData, schemaData, SCHEMA_TEMPLATE, FileType.SCHEMA);
     }
 
     private void createUsersyncerTestFile(BidderData bidderData) throws IOException, TemplateException {
         final UsersyncerData usersyncerData = bidderData.getUsersyncer();
         usersyncerData.setBidderName(bidderData.getBidderName());
-        createFileFromTemplate(bidderData, usersyncerData, USERSYNC_TEST_TEMPLATE, FileCreator.FileType.TEST_USERSYNCER);
+        createFileFromTemplate(bidderData, usersyncerData, USERSYNC_TEST_TEMPLATE, FileType.TEST_USERSYNCER);
     }
 
     private void createSimpleBidderTestFile(BidderData bidderData) throws IOException, TemplateException {
-        createFileFromTemplate(bidderData, bidderData, SIMPLE_BIDDER_TEST_TEMPLATE, FileCreator.FileType.TEST_BIDDER);
+        createFileFromTemplate(bidderData, bidderData, SIMPLE_BIDDER_TEST_TEMPLATE, FileType.TEST_BIDDER);
     }
 
     private void createFileFromTemplate(BidderData bidderData, Object templateData, String templateFile,
-                                        FileCreator.FileType fileType) throws IOException, TemplateException {
+                                        FileType fileType) throws IOException, TemplateException {
         final Configuration cfg = defaultConfiguration();
         final Template propertiesTemplate = cfg.getTemplate(templateFile);
         final String createdFile = fileCreator.makeBidderFile(bidderData, fileType);
