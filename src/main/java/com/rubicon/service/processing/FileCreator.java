@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
-class FileCreator {
+public class FileCreator {
 
     String makeBidderFile(BidderData bidderData, FileType fileType) throws IOException {
         final String filePath = bidderData.getPbsDirectory() + getPbsFilePath(bidderData, fileType);
