@@ -55,18 +55,16 @@ public class StringGenerator {
                 final Transformation singleTransformation = transformations.get(0);
                 final String target = singleTransformation.getTarget();
                 final String[] targetPath = StringUtils.split(target, ".");
-                // possible only for imp
+                final String modFieldName = modificationType.getName();
                 if (targetPath.length == 1) {
-                    addBuilderField(method, singleTransformation, modificationType, modificationType.getName(), null);
-                    // both imp and request
+                    addBuilderField(method, singleTransformation, modificationType, modFieldName, null);
                 } else if (targetPath.length == 2) {
                     if (isImpModification) {
                         addTopFieldBuilder(method, modificationType.getPath(), fieldClass, fieldName, capField);
-                        addBuilderField(method, singleTransformation, modificationType, modificationType.getName(), fieldName);
+                        addBuilderField(method, singleTransformation, modificationType, modFieldName, fieldName);
                     } else {
                         addBuilderField(method, singleTransformation, modificationType, topFieldName, null);
                     }
-                    // length == 3 - possible only for request
                 } else {
                     addNestedFieldBuilder(method, fieldClass, topFieldName, fieldName, capField);
                     addBuilderField(method, singleTransformation, modificationType, topFieldName, fieldName);
