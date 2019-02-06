@@ -26,7 +26,13 @@ public class TemplateProcessing {
     private static final String BIDDER_CONFIG_TEMPLATE = "configuration.ftl";
     private static final String SCHEMA_TEMPLATE = "schema.ftl";
     private static final String USERSYNC_TEST_TEMPLATE = "usersyncer_test.ftl";
-    private static final String SIMPLE_BIDDER_TEST_TEMPLATE = "bidder_test.ftl";
+
+    /**
+     * Templates for generating basic set of tests when no transformations are being made,
+     * i.e. bidder just passes the request on without applying any changes.
+     */
+    private static final String NO_EXT_BIDDER_TEST_TEMPLATE = "bidder_test_no_ext.ftl";
+    private static final String EXT_BIDDER_TEST_TEMPLATE = "bidder_test_ext.ftl";
 
     @Autowired
     private FileCreator fileCreator;
@@ -38,8 +44,12 @@ public class TemplateProcessing {
         createBidderSchemaJsonFile(bidderData);
         createBidderConfigurationJavaFile(bidderData);
 
-        if (bidderData.getBidderParams() == null && CollectionUtils.isEmpty(bidderData.getTransformations())) {
-            createSimpleBidderTestFile(bidderData);
+        if (CollectionUtils.isEmpty(bidderData.getTransformations())) {
+            if (CollectionUtils.isEmpty(bidderData.getBidderParams())) {
+                createNoExtBidderTestFile(bidderData);
+            } else {
+                createBidderWithExtTestFile(bidderData);
+            }
         }
     }
 
@@ -72,8 +82,12 @@ public class TemplateProcessing {
         createFileFromTemplate(bidderData, usersyncerData, USERSYNC_TEST_TEMPLATE, FileType.TEST_USERSYNCER);
     }
 
-    private void createSimpleBidderTestFile(BidderData bidderData) throws IOException, TemplateException {
-        createFileFromTemplate(bidderData, bidderData, SIMPLE_BIDDER_TEST_TEMPLATE, FileType.TEST_BIDDER);
+    private void createNoExtBidderTestFile(BidderData bidderData) throws IOException, TemplateException {
+        createFileFromTemplate(bidderData, bidderData, NO_EXT_BIDDER_TEST_TEMPLATE, FileType.TEST_BIDDER);
+    }
+
+    private void createBidderWithExtTestFile(BidderData bidderData) throws IOException, TemplateException {
+        createFileFromTemplate(bidderData, bidderData, EXT_BIDDER_TEST_TEMPLATE, FileType.TEST_BIDDER);
     }
 
     private void createFileFromTemplate(BidderData bidderData, Object templateData, String templateFile,

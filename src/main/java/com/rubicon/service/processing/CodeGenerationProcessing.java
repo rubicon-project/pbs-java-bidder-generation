@@ -60,7 +60,10 @@ public class CodeGenerationProcessing {
                 TypeSpec.classBuilder("ExtImp" + StringUtils.capitalize(bidderName))
                         .addJavadoc("Defines the contract for $Limp[i].ext.$L\n", REQUEST_SOURCE, bidderName)
                         .addModifiers(Modifier.PUBLIC)
-                        .addAnnotation(properties.size() > 4 ? Builder.class : AllArgsConstructor.class)
+                        .addAnnotation(properties.size() > 4
+                                ? AnnotationSpec.builder(Builder.class).build()
+                                : AnnotationSpec.builder(AllArgsConstructor.class).addMember(
+                                "staticName", "$S", "of").build())
                         .addAnnotation(Value.class);
 
         for (BidderParam field : properties) {

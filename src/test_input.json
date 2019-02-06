@@ -61,10 +61,6 @@
       "staticValue": null
     },
     {
-      "target": "imp.banner.format",
-      "staticValue": null
-    },
-    {
       "target": "imp.id",
       "from": "imp.banner.id"
     },

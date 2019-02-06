@@ -16,6 +16,7 @@ import org.prebid.server.bidder.model.HttpRequest;
 import org.prebid.server.bidder.model.HttpResponse;
 import org.prebid.server.bidder.model.Result;
 import org.prebid.server.proto.openrtb.ext.ExtPrebid;
+import org.prebid.server.proto.openrtb.ext.request.newbidder.ExtImp${bidderName?cap_first};
 
 import java.util.List;
 import java.util.function.Function;
@@ -43,11 +44,53 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
     }
 
     @Test
-    public void makeHttpRequestsShouldNotModifyIncomingRequest() {
+    public void makeHttpRequestsShouldReturnErrorIfImpExtCouldNotBeParsed() {
         // given
         final BidRequest bidRequest = BidRequest.builder()
                 .imp(singletonList(Imp.builder()
                         .ext(mapper.valueToTree(ExtPrebid.of(null, mapper.createObjectNode())))
+                        .build()))
+                .id("request_id")
+                .build();
+
+        // when
+        final Result<List<HttpRequest<BidRequest>>> result = ${bidderName}Bidder.makeHttpRequests(bidRequest);
+
+        // then
+        assertThat(result.getErrors()).hasSize(1);
+        assertThat(result.getErrors().get(0).getMessage()).startsWith("Cannot deserialize instance");
+        assertThat(result.getValue()).isEmpty();
+    }
+
+    <#function resolveValue type value>
+        <#local double = 1.2>
+        <#local float = 0.8>
+        <#local bool = true>
+        <#if type?matches("Double")>
+            <#local double += value>
+            <#return double?c>
+        <#elseif type?matches("Long")>
+            <#return value + "L">
+        <#elseif type?matches("Float")>
+            <#local float += value>
+            <#return float?c + "F">
+        <#elseif type?matches("Boolean")>
+            <#return bool?c>
+        <#else>
+            <#return value>
+        </#if>
+    </#function>
+    @Test
+    public void makeHttpRequestsShouldNotModifyIncomingRequest() {
+        // given
+        final BidRequest bidRequest = BidRequest.builder()
+                .imp(singletonList(Imp.builder()
+                        .ext(mapper.valueToTree(ExtPrebid.of(null, <#assign x=1>
+                                ExtImp${bidderName?cap_first}<#if bidderParams?size gt 4>.builder()
+                                        <#list bidderParams as p>
+                                        .${p.name}(<#if p.type?matches("String")>"${p.name}"<#else><#assign y = resolveValue(p.type, x)>${y}<#assign x++></#if>)
+                                        </#list>
+                                        .build()<#else>.of(<#list bidderParams as p><#if p.type?matches("String")>"${p.name}"<#else></#if><#if p?has_next>,</#if></#list>)</#if>)))
                         .build()))
                 .id("request_id")
                 .build();
@@ -106,7 +149,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
     }
 
     @Test
-    public void makeBidsShouldReturnBannerBid() throws JsonProcessingException {
+    public void makeBidsShouldReturnBannerBidIfBannerIsPresent() throws JsonProcessingException {
         // given
         final HttpCall<BidRequest> httpCall = givenHttpCall(
                 BidRequest.builder()
