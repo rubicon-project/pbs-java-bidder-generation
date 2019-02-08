@@ -1,6 +1,7 @@
 package com.rubicon.service.processing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rubicon.model.BidderData;
 import com.rubicon.model.BidderParam;
 import com.rubicon.model.Transformation;
@@ -16,13 +17,18 @@ import lombok.Builder;
 import lombok.Value;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Assertions;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +36,11 @@ public class CodeGenerationProcessing {
 
     private static final String IMP_SOURCE = "imp.";
     private static final String REQUEST_SOURCE = "bidRequest.";
+
+    private static String bidderName;
+    private static String bidderImpExtName;
+    private static String bidderPackage;
+    private static String bidderFile;
 
     private final FileCreator fileCreator;
     private final StringGenerator stringGenerator;
@@ -40,13 +51,28 @@ public class CodeGenerationProcessing {
     }
 
     public void generateBidderJavaFiles(BidderData bidderData) throws IOException {
+        setStaticFields(bidderData);
+
         final JavaFile extJavaFile = createExtJavaFile(bidderData);
         if (extJavaFile != null) {
-            writeExtFile(extJavaFile, bidderData);
+            writeGeneratedFile(extJavaFile, bidderData, FileType.EXT);
         }
 
         final JavaFile bidderJavaFile = createBidderJavaFile(bidderData);
-        writeBidderFile(bidderJavaFile, bidderData);
+        writeGeneratedFile(bidderJavaFile, bidderData, FileType.BIDDER);
+
+        if (CollectionUtils.isNotEmpty(bidderData.getTransformations())) {
+            final JavaFile bidderTestJavaFile = createBidderTestJavaFile(bidderData);
+            writeGeneratedFile(bidderTestJavaFile, bidderData, FileType.BIDDER_TEST);
+        }
+    }
+
+    private static void setStaticFields(BidderData bidderData) {
+        bidderName = bidderData.getBidderName();
+        bidderPackage = bidderName.toLowerCase();
+        final String capitalizedName = StringUtils.capitalize(bidderName);
+        bidderImpExtName = "ExtImp" + capitalizedName;
+        bidderFile = capitalizedName + "Bidder";
     }
 
     private static JavaFile createExtJavaFile(BidderData bidderData) {
@@ -55,9 +81,8 @@ public class CodeGenerationProcessing {
             return null;
         }
 
-        final String bidderName = bidderData.getBidderName();
         final TypeSpec.Builder extensionClassBuilder =
-                TypeSpec.classBuilder("ExtImp" + StringUtils.capitalize(bidderName))
+                TypeSpec.classBuilder(bidderImpExtName)
                         .addJavadoc("Defines the contract for $Limp[i].ext.$L\n", REQUEST_SOURCE, bidderName)
                         .addModifiers(Modifier.PUBLIC)
                         .addAnnotation(properties.size() > 4
@@ -82,7 +107,7 @@ public class CodeGenerationProcessing {
         }
 
         return JavaFile.builder("org.prebid.server.proto.openrtb.ext.request."
-                + bidderName.toLowerCase(), extensionClassBuilder.build())
+                + bidderPackage, extensionClassBuilder.build())
                 .skipJavaLangImports(true)
                 .build();
     }
@@ -91,21 +116,15 @@ public class CodeGenerationProcessing {
         return "java.lang." + inputName;
     }
 
-    private void writeExtFile(JavaFile extFile, BidderData bidderData) throws IOException {
-        final String extFilePath = fileCreator.makeBidderFile(bidderData, FileType.EXT);
-        extFile.writeTo(Paths.get(extFilePath));
-    }
-
     private JavaFile createBidderJavaFile(BidderData bidderData) {
-        final String bidderName = bidderData.getBidderName();
         final List<BidderParam> bidderParams = bidderData.getBidderParams();
-        final String strategy = bidderData.getStrategy();
         final ClassName extClass = CollectionUtils.isNotEmpty(bidderParams)
-                ? ClassName.get("org.prebid.server.proto.openrtb.ext.request." + bidderName.toLowerCase(),
-                "ExtImp" + StringUtils.capitalize(bidderName))
+                ? ClassName.get("org.prebid.server.proto.openrtb.ext.request."
+                + bidderPackage, bidderImpExtName)
                 : ClassName.get(Void.class);
 
-        MethodSpec bidderConstructor = MethodSpec.constructorBuilder()
+        final String strategy = bidderData.getStrategy();
+        final MethodSpec bidderConstructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(String.class, "endpointUrl")
                 .addStatement("super(endpointUrl, RequestCreationStrategy.$L, $T.class)", strategy, extClass)
@@ -113,7 +132,7 @@ public class CodeGenerationProcessing {
 
         final ClassName openrtbBidder = ClassName.get("org.prebid.server.bidder", "OpenrtbBidder");
         final TypeSpec.Builder bidderClassBuilder =
-                TypeSpec.classBuilder(StringUtils.capitalize(bidderName) + "Bidder")
+                TypeSpec.classBuilder(bidderFile)
                         .addModifiers(Modifier.PUBLIC)
                         .superclass(ParameterizedTypeName.get(openrtbBidder, extClass))
                         .addMethod(bidderConstructor);
@@ -124,8 +143,7 @@ public class CodeGenerationProcessing {
             modifyRequest(bidderClassBuilder, bidderData, extClass);
         }
 
-        return JavaFile.builder("org.prebid.server.bidder."
-                + bidderName.toLowerCase(), bidderClassBuilder.build())
+        return JavaFile.builder("org.prebid.server.bidder." + bidderPackage, bidderClassBuilder.build())
                 .skipJavaLangImports(true)
                 .build();
     }
@@ -229,8 +247,223 @@ public class CodeGenerationProcessing {
         }
     }
 
-    private void writeBidderFile(JavaFile bidderFile, BidderData bidderData) throws IOException {
-        final String bidderFilePath = fileCreator.makeBidderFile(bidderData, FileType.BIDDER);
+    private JavaFile createBidderTestJavaFile(BidderData bidderData) {
+        final FieldSpec endpointField = FieldSpec.builder(String.class, "ENDPOINT_URL")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .initializer("$S", "https://test.endpoint.com")
+                .build();
+
+        final ClassName bidderClass = ClassName.get("org.prebid.server.bidder." + bidderPackage, bidderFile);
+        final FieldSpec bidderInstance = FieldSpec.builder(bidderClass, bidderName + "Bidder", Modifier.PRIVATE)
+                .build();
+
+        final MethodSpec setUpMethod = MethodSpec.methodBuilder("setUp")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Before.class)
+                .addStatement("$LBidder = new $L($N)", bidderName, bidderFile, endpointField)
+                .build();
+
+        final MethodSpec endpointValidationTest = createTestMethod("creationShouldFailOnInvalidEndpointUrl",
+                method -> method
+                        .addStatement(" assertThatIllegalArgumentException().isThrownBy(() -> new $L(\"invalid_url\"))",
+                                bidderFile));
+
+        final ClassName extPrebid = ClassName.get("org.prebid.server.proto.openrtb.ext", "ExtPrebid");
+        final MethodSpec extCannotBeParsedTest = createTestMethod("makeHttpRequestsShouldReturnErrorIfImpExtCouldNotBeParsed",
+                method -> method
+                        .addCode("// given\nfinal BidRequest bidRequest = BidRequest.builder()\n")
+                        .addCode(".imp(singletonList(Imp.builder()\n")
+                        .addCode(".ext(mapper.valueToTree($T.of(null, mapper.createArrayNode())))\n", extPrebid)
+                        .addCode(".build()))\n.build();\n\n")
+                        .addCode("// when\nfinal Result<List<HttpRequest<BidRequest>>> result = $N.makeHttpRequests(bidRequest);\n\n",
+                                bidderInstance)
+                        .addCode("// then\nassertThat(result.getErrors()).hasSize(1);\n")
+                        .addCode("assertThat(result.getErrors().get(0).getMessage()).startsWith(\"Cannot deserialize instance\");\n")
+                        .addStatement("assertThat(result.getValue()).isEmpty()"));
+
+        // insert methods here
+
+        final ClassName result = ClassName.get("org.prebid.server.bidder.model", "Result");
+        final ClassName bidderBid = ClassName.get("org.prebid.server.bidder.model", "BidderBid");
+        final ClassName bidderError = ClassName.get("org.prebid.server.bidder.model", "BidderError");
+        final MethodSpec responseBodyTest = createTestMethod("makeBidsShouldReturnErrorIfResponseBodyCouldNotBeParsed",
+                method -> method
+                        .addCode("// given\nfinal HttpCall<BidRequest> httpCall = givenHttpCall(null, \"invalid\");\n\n")
+                        .addCode("// when\nfinal $T<$T<$T>> result = $N.makeBids(httpCall, null);\n\n",
+                                result, List.class, bidderBid, bidderInstance)
+                        .addCode("// then\nassertThat(result.getErrors()).hasSize(1);\n")
+                        .addCode("assertThat(result.getErrors().get(0).getMessage()).startsWith(\"Failed to decode: Unrecognized token\");\n")
+                        .addCode("assertThat(result.getErrors().get(0).getType()).isEqualTo($T.Type.bad_server_response);\n",
+                                bidderError)
+                        .addStatement("assertThat(result.getValue()).isEmpty()"));
+
+        final MethodSpec bidResponseNullTest = createTestMethod("makeBidsShouldReturnEmptyListIfBidResponseIsNull",
+                method -> method.addException(JsonProcessingException.class)
+                        .addCode("// given\nfinal HttpCall<BidRequest> httpCall = givenHttpCall(null, mapper.writeValueAsString(null));\n\n")
+                        .addCode("// when\nfinal $T<List<BidderBid>> result = $N.makeBids(httpCall, null);\n\n",
+                                result, bidderInstance)
+                        .addCode("// then\nassertThat(result.getErrors()).isEmpty();\n")
+                        .addStatement("assertThat(result.getValue()).isEmpty()"));
+
+        final MethodSpec seatBidNullTest = createTestMethod("makeBidsShouldReturnEmptyListIfBidResponseSeatBidIsNull",
+                method -> method.addException(JsonProcessingException.class)
+                        .addCode("// given\nfinal HttpCall<BidRequest> httpCall = givenHttpCall(null,\n")
+                        .addCode("mapper.writeValueAsString(BidResponse.builder().build()));\n\n")
+                        .addCode("// when\nfinal $T<List<BidderBid>> result = $N.makeBids(httpCall, null);\n\n",
+                                result, bidderInstance)
+                        .addCode("// then\nassertThat(result.getErrors()).isEmpty();\n")
+                        .addStatement("assertThat(result.getValue()).isEmpty()"));
+
+
+        final MethodSpec bannerBidTest = createTestMethod("makeBidsShouldReturnBannerBid",
+                method -> method.addException(JsonProcessingException.class)
+                        .addCode("// given\nfinal HttpCall<BidRequest> httpCall = givenHttpCall(\n")
+                        .addCode("BidRequest.builder().imp(singletonList(Imp.builder().id(\"123\").build())).build(),\n")
+                        .addCode("mapper.writeValueAsString(givenBidResponse(bidBuilder -> bidBuilder.impid(\"123\"))));\n\n")
+                        .addCode("// when\nfinal $T<List<BidderBid>> result = $N.makeBids(httpCall, null);\n\n",
+                                result, bidderInstance)
+                        .addCode("// then\nassertThat(result.getErrors()).isEmpty();\n")
+                        .addStatement("assertThat(result.getValue()).containsOnly(BidderBid.of(Bid.builder()"
+                                + ".impid(\"123\").build(), banner, \"USD\"))"));
+
+        final MethodSpec targetingTest = createTestMethod("extractTargetingShouldReturnEmptyMap",
+                method -> method.addStatement("assertThat($N.extractTargeting(mapper.createObjectNode())).isEqualTo(emptyMap())",
+                        bidderInstance));
+
+        final ClassName vertxTest = ClassName.get("org.prebid.server", "VertxTest");
+        final TypeSpec.Builder testClassBuilder =
+                TypeSpec.classBuilder(bidderFile + "Test")
+                        .addModifiers(Modifier.PUBLIC)
+                        .superclass(vertxTest)
+                        .addField(endpointField)
+                        .addField(bidderInstance)
+                        .addMethod(setUpMethod)
+                        .addMethod(endpointValidationTest)
+                        .addMethod(extCannotBeParsedTest);
+
+        resolveAndAddBidderTransformationsTest(testClassBuilder, bidderData);
+
+        testClassBuilder
+                .addMethod(responseBodyTest)
+                .addMethod(bidResponseNullTest)
+                .addMethod(seatBidNullTest)
+                .addMethod(bannerBidTest)
+                .addMethod(targetingTest);
+
+        addUtilityMethods(testClassBuilder, bidderData);
+
+        return JavaFile.builder("org.prebid.server.bidder."
+                + bidderPackage, testClassBuilder.build())
+                .skipJavaLangImports(true)
+                .addStaticImport(Collections.class, "emptyMap", "singletonList")
+                .addStaticImport(Assertions.class, "assertThat", "assertThatIllegalArgumentException")
+                .addStaticImport(ClassName.get("org.prebid.server.proto.openrtb.ext.response", "BidType"), "banner")
+                .addStaticImport(Function.class, "identity")
+                .build();
+    }
+
+    private void resolveAndAddBidderTransformationsTest(TypeSpec.Builder builder, BidderData bidderData) {
+        final MethodSpec transformationsTest = createTestMethod("makeHttpRequestsShouldReturnExpectedRequest",
+                method -> method
+                        .addCode("// given\n")
+                        .addCode(stringGenerator.resolveGivenBidRequestString(bidderData))
+                        .addCode("\n\n")
+                        .addCode("// when\nfinal Result<List<HttpRequest<BidRequest>>> result = newBidderBidder.makeHttpRequests(bidRequest);\n\n")
+                        .addCode("// then\n")
+                        .addCode(stringGenerator.resolveExpectedBidRequestString(bidderData))
+                        .addCode("\n")
+                        .addCode("assertThat(result.getErrors()).isEmpty();\n")
+                        .addCode("assertThat(result.getValue()).hasSize(1)\n")
+                        .addCode(".extracting(httpRequest -> mapper.readValue(httpRequest.getBody(), BidRequest.class))\n")
+                        .addStatement(".containsOnly(expectedRequest)"));
+
+        builder.addMethod(transformationsTest);
+    }
+
+    private void addUtilityMethods(TypeSpec.Builder builder, BidderData bidderData) {
+        final ClassName bidRequest = ClassName.get("com.iab.openrtb.request", "BidRequest");
+        final ClassName bidRequestBuilder = bidRequest.nestedClass("BidRequestBuilder");
+        final ClassName imp = ClassName.get("com.iab.openrtb.request", "Imp");
+        final ClassName impBuilder = imp.nestedClass("ImpBuilder");
+        final MethodSpec givenBidRequest = MethodSpec.methodBuilder("givenBidRequest")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .returns(bidRequest)
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Function.class),
+                        impBuilder, impBuilder), "impCustomizer")
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Function.class),
+                        bidRequestBuilder, bidRequestBuilder), "requestCustomizer")
+                .addCode("return requestCustomizer.apply(BidRequest.builder()\n")
+                .addCode(".imp(singletonList(givenImp(impCustomizer))))\n.build();")
+                .build();
+
+        final MethodSpec givenBidRequestImp = MethodSpec.methodBuilder("givenBidRequest")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .returns(bidRequest)
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Function.class),
+                        impBuilder, impBuilder), "impCustomizer")
+                .addStatement("return givenBidRequest(impCustomizer, identity())")
+                .build();
+
+        final ClassName imExtClass = ClassName.get("org.prebid.server.proto.openrtb.ext.request."
+                + bidderPackage, bidderImpExtName);
+        final ClassName banner = ClassName.get("com.iab.openrtb.request", "Banner");
+        final ClassName video = ClassName.get("com.iab.openrtb.request", "Video");
+        final MethodSpec givenImp = MethodSpec.methodBuilder("givenImp")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .returns(imp)
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Function.class),
+                        impBuilder, impBuilder), "impCustomizer")
+                .addCode("return impCustomizer.apply(Imp.builder()\n")
+                .addCode(".id(\"123\"))\n")
+                .addCode(".banner($T.builder().build())\n", banner)
+                .addCode(".video($T.builder().build())\n", video)
+                .addCode(stringGenerator.resolveExt(bidderData), imExtClass)
+                .addStatement(".build()")
+                .build();
+
+        final ClassName bidBuilder = ClassName.get("com.iab.openrtb.response", "Bid", "BidBuilder");
+        final ClassName seatBid = ClassName.get("com.iab.openrtb.response", "SeatBid");
+        final MethodSpec givenBidResponse = MethodSpec.methodBuilder("givenBidResponse")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Function.class), bidBuilder, bidBuilder), "bidCustomizer")
+                .returns(ClassName.get("com.iab.openrtb.response", "BidResponse"))
+                .addCode("return BidResponse.builder()\n")
+                .addCode(".seatbid(singletonList($T.builder()\n", seatBid)
+                .addCode(".bid(singletonList(bidCustomizer.apply(Bid.builder()).build()))\n")
+                .addCode(".build()))\n")
+                .addStatement(".build()")
+                .build();
+
+
+        final ClassName httpRequest = ClassName.get("org.prebid.server.bidder.model", "HttpRequest");
+        final ClassName httpResponse = ClassName.get("org.prebid.server.bidder.model", "HttpResponse");
+        final MethodSpec givenHttpCall = MethodSpec.methodBuilder("givenHttpCall")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .addParameter(bidRequest, "bidRequest")
+                .addParameter(String.class, "body")
+                .returns(ParameterizedTypeName.get(
+                        ClassName.get("org.prebid.server.bidder.model", "HttpCall"), bidRequest))
+                .addCode("return HttpCall.success($T.<BidRequest>builder().payload(bidRequest).build(),\n", httpRequest)
+                .addStatement("$T.of(200, null, body), null)", httpResponse)
+                .build();
+
+        builder.addMethod(givenBidRequest)
+                .addMethod(givenBidRequestImp)
+                .addMethod(givenImp)
+                .addMethod(givenBidResponse)
+                .addMethod(givenHttpCall);
+    }
+
+    private void writeGeneratedFile(JavaFile bidderFile, BidderData bidderData, FileType fileType) throws IOException {
+        final String bidderFilePath = fileCreator.makeBidderFile(bidderData, fileType);
         bidderFile.writeTo(Paths.get(bidderFilePath));
+    }
+
+    private static MethodSpec createTestMethod(String methodName,
+                                               Function<MethodSpec.Builder, MethodSpec.Builder> customizer) {
+        return customizer.apply(MethodSpec.methodBuilder(methodName)
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Test.class))
+                .build();
     }
 }

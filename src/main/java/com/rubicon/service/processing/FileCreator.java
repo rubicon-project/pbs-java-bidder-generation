@@ -16,7 +16,8 @@ public class FileCreator {
         final String filePath = bidderData.getPbsDirectory() + getPbsFilePath(bidderData, fileType);
         final Path path = Paths.get(filePath);
         Files.createDirectories(path.getParent());
-        if (!(fileType.equals(FileType.BIDDER) || fileType.equals(FileType.EXT))) {
+        if (!(fileType.equals(FileType.BIDDER) || fileType.equals(FileType.EXT)
+                || fileType.equals(FileType.BIDDER_TEST))) {
             Files.createFile(path);
         }
         System.out.println(filePath);
@@ -42,7 +43,7 @@ public class FileCreator {
                 return capitalizedName;
             case TEST_USERSYNCER:
                 return bidderName.toLowerCase() + "/" + capitalizedName;
-            case TEST_BIDDER:
+            case TEST_SIMPLE_BIDDER:
                 return bidderName.toLowerCase() + "/" + capitalizedName;
             default:
                 return "";

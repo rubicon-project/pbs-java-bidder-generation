@@ -83,11 +83,11 @@ public class TemplateProcessing {
     }
 
     private void createNoExtBidderTestFile(BidderData bidderData) throws IOException, TemplateException {
-        createFileFromTemplate(bidderData, bidderData, NO_EXT_BIDDER_TEST_TEMPLATE, FileType.TEST_BIDDER);
+        createFileFromTemplate(bidderData, bidderData, NO_EXT_BIDDER_TEST_TEMPLATE, FileType.TEST_SIMPLE_BIDDER);
     }
 
     private void createBidderWithExtTestFile(BidderData bidderData) throws IOException, TemplateException {
-        createFileFromTemplate(bidderData, bidderData, EXT_BIDDER_TEST_TEMPLATE, FileType.TEST_BIDDER);
+        createFileFromTemplate(bidderData, bidderData, EXT_BIDDER_TEST_TEMPLATE, FileType.TEST_SIMPLE_BIDDER);
     }
 
     private void createFileFromTemplate(BidderData bidderData, Object templateData, String templateFile,
