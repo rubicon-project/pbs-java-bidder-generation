@@ -108,6 +108,7 @@ public class CodeGenerationProcessing {
 
         return JavaFile.builder("org.prebid.server.proto.openrtb.ext.request."
                 + bidderPackage, extensionClassBuilder.build())
+                .indent("    ")
                 .skipJavaLangImports(true)
                 .build();
     }
@@ -145,6 +146,7 @@ public class CodeGenerationProcessing {
 
         return JavaFile.builder("org.prebid.server.bidder." + bidderPackage, bidderClassBuilder.build())
                 .skipJavaLangImports(true)
+                .indent("    ")
                 .build();
     }
 
@@ -359,6 +361,7 @@ public class CodeGenerationProcessing {
                 .addStaticImport(Assertions.class, "assertThat", "assertThatIllegalArgumentException")
                 .addStaticImport(ClassName.get("org.prebid.server.proto.openrtb.ext.response", "BidType"), "banner")
                 .addStaticImport(Function.class, "identity")
+                .indent("    ")
                 .build();
     }
 

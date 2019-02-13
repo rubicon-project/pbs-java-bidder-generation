@@ -5,9 +5,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 @Service
 public class FileCreator {
@@ -18,9 +20,8 @@ public class FileCreator {
         Files.createDirectories(path.getParent());
         if (!(fileType.equals(FileType.BIDDER) || fileType.equals(FileType.EXT)
                 || fileType.equals(FileType.BIDDER_TEST))) {
-            Files.createFile(path);
+                Files.createFile(path);
         }
-        System.out.println(filePath);
 
         return filePath;
     }

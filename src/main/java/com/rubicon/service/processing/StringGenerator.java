@@ -44,7 +44,13 @@ public class StringGenerator {
                                       String topFieldName, String fieldName, String capName) {
         method.addStatement("final $T $L = $L != null ? $L.get$L() : null", className, fieldName, topFieldName,
                 topFieldName, capName);
-        resolveFieldBuilderString(method, className, topFieldName, capName);
+        resolveFieldBuilderString(method, className, fieldName, capName);
+    }
+
+    private static void resolveFieldBuilderString(MethodSpec.Builder method, ClassName className, String fieldName,
+                                                  String capName) {
+        method.addStatement("final $T.$LBuilder $LBuilder = $L != null ? $L.toBuilder() : $T.builder()",
+                className, capName, fieldName, fieldName, fieldName, className);
     }
 
     public void resolveMethodBody(MethodSpec.Builder method, Map<String, List<Transformation>> fieldToTransformations,
@@ -212,12 +218,6 @@ public class StringGenerator {
         return resolveFieldString(requestField, "bidRequest", targetPath);
     }
 
-    private static void resolveFieldBuilderString(MethodSpec.Builder method, ClassName className, String fieldName,
-                                                  String capName) {
-        method.addStatement("final $T.$LBuilder $LBuilder = $L != null ? $L.toBuilder() : $T.builder()",
-                className, capName, fieldName, fieldName, fieldName, className);
-    }
-
     private static String resolveFieldString(String field, String filedPrefix, String[] targetPath) {
         final String[] filedPath = StringUtils.split(field, ".");
         final StringBuilder builder = new StringBuilder(".")
@@ -263,7 +263,7 @@ public class StringGenerator {
                 final ClassName topFieldClass = ClassName.get("com.iab.openrtb.request", capTopField);
 
                 if (transformations.size() > 1) {
-                    builder.append(".").append(topFieldName).append("(").append(CodeBlock.of("$T", topFieldClass))
+                    builder.append(".").append(topFieldName).append("(").append(topFieldClass)
                             .append(".builder()");
                     for (Transformation transformation : transformations) {
                         final String[] fromSplit = StringUtils.split(transformation.getFrom(), ".");
@@ -284,7 +284,7 @@ public class StringGenerator {
                     if (splitFrom.length == 1) {
                         builder.append(".").append(splitFrom[0]).append("(").append(value).append(")\n");
                     } else {
-                        builder.append(".").append(splitFrom[0]).append("(").append(CodeBlock.of("$T", topFieldClass))
+                        builder.append(".").append(splitFrom[0]).append("(").append(topFieldClass)
                                 .append(".builder().").append(targetField).append("(").append(value).append(").build())\n");
                     }
                 }
@@ -298,7 +298,6 @@ public class StringGenerator {
                 .filter(transformation -> !transformation.getFrom().contains("imp."))
                 .collect(Collectors.toSet());
 
-        //TODO --------------------------------------------------
         if (!fromRequestField.isEmpty()) {
             builder.append("requestBuilder -> requestBuilder\n");
 
@@ -312,7 +311,7 @@ public class StringGenerator {
                 final ClassName topFieldClass = ClassName.get("com.iab.openrtb.request", capTopField);
 
                 if (transformations.size() > 1) {
-                    builder.append(".").append(topFieldName).append("(").append(CodeBlock.of("$T", topFieldClass))
+                    builder.append(".").append(topFieldName).append("(").append(topFieldClass)
                             .append(".builder()");
 
                     final Map<String, List<Transformation>> midFromToTransformations = transformations.stream()
@@ -326,7 +325,7 @@ public class StringGenerator {
                         final ClassName midFieldClass = ClassName.get("com.iab.openrtb.request", capMidField);
 
                         if (midTransformations.size() > 1) {
-                            builder.append(".").append(midFieldName).append("(").append(CodeBlock.of("$T", midFieldClass))
+                            builder.append(".").append(midFieldName).append("(").append(midFieldClass)
                                     .append(".builder()\n");
                             for (Transformation transformation : midTransformations) {
                                 final String[] fromSplit = StringUtils.split(transformation.getFrom(), ".");
@@ -348,16 +347,12 @@ public class StringGenerator {
                             if (fromSplit.length == 2) {
                                 builder.append(fromSplit[1]).append("(").append(value).append(")\n");
                             } else {
-                                builder.append(fromSplit[1]).append("(").append(CodeBlock.of("$T", midFieldClass))
+                                builder.append(fromSplit[1]).append("(").append(midFieldClass)
                                         .append(".builder().").append(fromSplit[2]).append("(")
                                         .append(value).append(").build())\n");
                             }
                         }
                     }
-//                    for (Transformation transformation : transformations) {
-
-//                        builder.append(".").append(fromSplit[1]).append("(").append(value).append(")");
-//                    }
                     builder.append(".build())\n");
                 } else {
                     final Transformation singleTransformation = transformations.get(0);
@@ -369,25 +364,25 @@ public class StringGenerator {
                     if (splitFrom.length == 1) {
                         builder.append(".").append(splitFrom[0]).append("(").append(value).append(")\n");
                     } else if (splitFrom.length == 2){
-                        builder.append(".").append(splitFrom[0]).append("(").append(CodeBlock.of("$T", topFieldClass))
+                        builder.append(".").append(splitFrom[0]).append("(").append(topFieldClass)
                                 .append(".builder().").append(targetField).append("(").append(value).append(").build())\n");
                     } else if (splitFrom.length == 3){
                         final ClassName midFieldClass = ClassName.get("com.iab.openrtb.request",
                                 StringUtils.capitalize(splitFrom[1]));
-                        builder.append(".").append(splitFrom[0]).append("(").append(CodeBlock.of("$T", topFieldClass))
+                        builder.append(".").append(splitFrom[0]).append("(").append(topFieldClass)
                                 .append(".builder().").append(splitFrom[1]).append("(")
-                                .append(CodeBlock.of("$T", midFieldClass)).append(".builder().")
+                                .append(midFieldClass).append(".builder().")
                                 .append(targetField).append("(").append(value).append(").build()).build())\n");
                     } else {
                         final ClassName secondFieldClass = ClassName.get("com.iab.openrtb.request",
                                 StringUtils.capitalize(splitFrom[1]));
                         final ClassName thirdFieldClass = ClassName.get("com.iab.openrtb.request",
                                 StringUtils.capitalize(splitFrom[2]));
-                        builder.append(".").append(splitFrom[0]).append("(").append(CodeBlock.of("$T", topFieldClass))
+                        builder.append(".").append(splitFrom[0]).append("(").append(topFieldClass)
                                 .append(".builder().").append(splitFrom[1]).append("(")
-                                .append(CodeBlock.of("$T", secondFieldClass)).append(".builder().")
+                                .append(secondFieldClass).append(".builder().")
                                 .append(splitFrom[2]).append("(")
-                                .append(CodeBlock.of("$T", thirdFieldClass)).append(".builder().")
+                                .append(thirdFieldClass).append(".builder().")
                                 .append(targetField).append("(").append(value).append(").build()).build()).build())\n");
                     }
                 }
@@ -420,7 +415,7 @@ public class StringGenerator {
                     builder.append("imp(singletonList(bidRequest.getImp().get(0).toBuilder()\n");
                 } else {
                     builder.append(topFieldName).append("(").append("(bidRequest.get").append(capTopField)
-                            .append("() == null ? ").append(CodeBlock.of("$T", topFieldClass))
+                            .append("() == null ? ").append(topFieldClass)
                             .append(".builder() : bidRequest.get").append(capTopField).append("().toBuilder())\n");
                 }
 
@@ -439,7 +434,7 @@ public class StringGenerator {
                             builder.append(midFieldName).append("(bidRequest.getImp().get(0).get").append(capMidField)
                                     .append("().toBuilder()\n");
                         } else {
-                            builder.append(midFieldName).append("(").append(CodeBlock.of("$T", midFieldClass))
+                            builder.append(midFieldName).append("(").append(midFieldClass)
                                     .append(".builder()\n");
                         }
 
@@ -460,7 +455,7 @@ public class StringGenerator {
                             builder.append(targetPath[1]).append("(")
                                     .append(resolveValue(singleTransformation, bidderData)).append(")\n");
                         } else {
-                            builder.append(targetPath[0]).append("(").append(CodeBlock.of("$T", midFieldClass))
+                            builder.append(targetPath[0]).append("(").append(midFieldClass)
                                     .append(".builder().").append(targetPath[1]).append("(")
                                     .append(resolveValue(singleTransformation, bidderData)).append(").build())\n");
                         }
@@ -486,25 +481,28 @@ public class StringGenerator {
                                 .append("(").append(resolveValue(singleTransformation, bidderData))
                                 .append(").build()))\n");
                     } else {
-                        builder.append(targetPath[0]).append("(").append(CodeBlock.of("$T", topFieldClass))
+                        builder.append(targetPath[0]).append("(").append(topFieldClass)
                                 .append(".builder().").append(targetPath[1]).append("(")
                                 .append(resolveValue(singleTransformation, bidderData)).append(").build())\n");
                     }
                 } else {
-                    final ClassName midFieldClass = ClassName.get("com.iab.openrtb.request", targetPath[1]);
+                    final ClassName midFieldClass = ClassName.get("com.iab.openrtb.request",
+                            StringUtils.capitalize(targetPath[1]));
                     if (isImp) {
                         builder.append("imp(singletonList(bidRequest.getImp().get(0).toBuilder().").append(targetPath[1])
-                                .append("(").append(CodeBlock.of("$T", midFieldClass)).append(".builder().")
+                                .append("(").append(midFieldClass).append(".builder().")
                                 .append(targetPath[2]).append("(")
                                 .append(resolveValue(singleTransformation, bidderData))
-                                .append(").build()").append(").build()))\n");
+                                .append(").build()).build()))\n");
                     } else {
-                        builder.append(targetPath[0]).append("(").append(CodeBlock.of("$T", topFieldClass))
-                                .append(".builder().").append(targetPath[1]).append("(")
-                                .append(CodeBlock.of("$T", midFieldClass)).append(".builder().")
+                        builder.append(targetPath[0]).append("((").append("bidRequest.get")
+                                .append(capTopField).append("() == null ? ").append(topFieldClass)
+                                .append(".builder() : ").append("bidRequest.get").append(capTopField)
+                                .append("().toBuilder())\n.").append(targetPath[1]).append("(")
+                                .append(midFieldClass).append(".builder().")
                                 .append(targetPath[2]).append("(")
                                 .append(resolveValue(singleTransformation, bidderData))
-                                .append(").build()").append(").build())\n");
+                                .append(").build()).build())\n");
                     }
                 }
             }

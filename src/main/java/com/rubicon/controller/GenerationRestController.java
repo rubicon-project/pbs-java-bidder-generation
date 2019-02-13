@@ -4,6 +4,7 @@ import com.rubicon.model.BidderData;
 import com.rubicon.service.BidderService;
 import freemarker.template.TemplateException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,8 @@ import java.io.IOException;
 @RestController
 public class GenerationRestController {
 
+    private ApplicationContext applicationContext;
+
     @Autowired
     private BidderService bidderService;
 
@@ -26,7 +29,7 @@ public class GenerationRestController {
         try {
             bidderService.generateBidderFiles(bidderData);
         } catch (IOException | TemplateException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.toString(), e);
         }
     }
 }
