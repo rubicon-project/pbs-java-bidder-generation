@@ -60,8 +60,8 @@ Steps:
 
 1. Clone the bidder-generation-tool repository with `git@github.com:rubicon-project/pbs-java-bidder-generation.git` command
 
-2. Run with command `mvn spring-boot:run`
+2. Run with command `mvn spring-boot:run`. After application loads it should open its homepage at your default browser or if it did not - got to `localhost:8080`
 
-3. Send a POST request to `http://localhost:8080/generate` with a header `Content-Type : application/json` and json body containing bidder description properties and local PBS directory path.
+3. Fill up the form providing all necessary information and bidder implementation details and press `Generate Bidder Files`.
 
 4. Check the results in your local PBS directory or project.
