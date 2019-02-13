@@ -233,15 +233,12 @@ public class StringGenerator {
     }
 
     public String resolveGivenBidRequestString(BidderData bidderData) {
-        final StringBuilder builder = new StringBuilder("final BidRequest bidRequest = givenBidRequest(");
+        final StringBuilder builder = new StringBuilder("final BidRequest bidRequest = givenBidRequest(\n");
 
         final List<Transformation> fromImpOrRequestFields = bidderData.getTransformations().stream()
                 .filter(transformation -> StringUtils.isNotBlank(transformation.getFrom()))
                 .filter(transformation -> !transformation.getFrom().contains("impExt."))
                 .collect(Collectors.toList());
-        if (fromImpOrRequestFields.isEmpty()) {
-            builder.append("identity()");
-        }
 
         int numValue = 1;
         final Set<Transformation> fromImpField = fromImpOrRequestFields.stream()
@@ -455,8 +452,8 @@ public class StringGenerator {
                             builder.append(targetPath[1]).append("(")
                                     .append(resolveValue(singleTransformation, bidderData)).append(")\n");
                         } else {
-                            builder.append(targetPath[0]).append("(").append(midFieldClass)
-                                    .append(".builder().").append(targetPath[1]).append("(")
+                            builder.append(targetPath[1]).append("(").append(midFieldClass)
+                                    .append(".builder().").append(targetPath[2]).append("(")
                                     .append(resolveValue(singleTransformation, bidderData)).append(").build())\n");
                         }
                     }

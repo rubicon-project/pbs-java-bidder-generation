@@ -229,13 +229,15 @@ public class CodeGenerationProcessing {
                     } else {
                         stringGenerator.addTopFieldBuilder(modifyRequest, REQUEST_SOURCE, keyClass, topFieldName,
                                 capKey);
+                        final String midField = targetPath[1];
+                        final String capMiddleName = StringUtils.capitalize(midField);
+                        final ClassName midClass = ClassName.get("com.iab.openrtb.request", capMiddleName);
                         if (targetPath.length == 2) {
                             stringGenerator.addBuilderField(modifyRequest, singleTransformation,
                                     ModificationType.REQUEST, topFieldName, null);
+                            modifyRequest.addStatement("requestBuilder.$L($LBuilder.build())",
+                                    topFieldName, topFieldName);
                         } else {
-                            final String midField = targetPath[1];
-                            final String capMiddleName = StringUtils.capitalize(midField);
-                            final ClassName midClass = ClassName.get("com.iab.openrtb.request", capMiddleName);
                             stringGenerator.addNestedFieldBuilder(modifyRequest, midClass, topFieldName,
                                     midField, capMiddleName);
                             modifyRequest.addStatement("requestBuilder.$L($LBuilder.$L($LBuilder$L.build()).build())",
