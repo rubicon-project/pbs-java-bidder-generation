@@ -60,8 +60,9 @@ public class TemplateProcessing {
     }
 
     private void createUsersyncerJavaFile(BidderData bidderData) throws IOException, TemplateException {
-        final UsersyncerData usersyncerData = bidderData.getUsersyncer();
-        usersyncerData.setBidderName(bidderData.getBidderName());
+        final String bidderName = bidderData.getBidderName();
+        final UsersyncerData usersyncerData = new UsersyncerData(bidderName, bidderName.toLowerCase(),
+                bidderData.getUrlParams());
         createFileFromTemplate(bidderData, usersyncerData, USERSYNCER_TEMPLATE, FileType.USERSYNCER);
     }
 
@@ -77,8 +78,9 @@ public class TemplateProcessing {
     }
 
     private void createUsersyncerTestFile(BidderData bidderData) throws IOException, TemplateException {
-        final UsersyncerData usersyncerData = bidderData.getUsersyncer();
-        usersyncerData.setBidderName(bidderData.getBidderName());
+        final String bidderName = bidderData.getBidderName();
+        final UsersyncerData usersyncerData = new UsersyncerData(bidderName, bidderName.toLowerCase(),
+                bidderData.getUrlParams());
         createFileFromTemplate(bidderData, usersyncerData, USERSYNC_TEST_TEMPLATE, FileType.TEST_USERSYNCER);
     }
 

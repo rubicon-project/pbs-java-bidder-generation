@@ -20,7 +20,7 @@ public class ${bidderName?cap_first}UsersyncerTest {
         // given
         final UsersyncInfo expected = UsersyncInfo.of(
                 "//usersync.org/http%3A%2F%2Fexternal.org%2F"
-                        + "${urlPrefix}",
+                        + "${urlParams}",
                 "redirect", false);
 
         // when

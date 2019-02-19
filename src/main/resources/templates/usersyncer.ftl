@@ -22,7 +22,7 @@ public class ${bidderName?cap_first}Usersyncer implements Usersyncer {
      */
     private static UsersyncInfo createUsersyncInfo(String usersyncUrl, String externalUrl) {
         final String redirectUri = HttpUtil.encodeUrl(externalUrl)
-                + "${urlPrefix}";
+                + "${urlParams}";
 
         return UsersyncInfo.of(String.format("%s%s", usersyncUrl, redirectUri), "redirect", false);
     }

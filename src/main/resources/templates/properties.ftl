@@ -19,8 +19,4 @@ adapters:
         <#else>
         </#list>
       supported-vendors:
-        <#list supportedVendors as vendor>
-        - ${vendor}
-        <#else>
-        </#list>
       vendor-id: ${vendorId}

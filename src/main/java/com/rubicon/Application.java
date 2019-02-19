@@ -24,14 +24,15 @@ public class Application {
             try {
                 desktop.browse(new URI(HOMEPAGE));
             } catch (URISyntaxException | IOException e) {
-                e.printStackTrace();
+                System.out.println("An error occurred while trying to open a homepage, please open a browser and" +
+                        " go to localhost:8080");
             }
         } else {
             Runtime runtime = Runtime.getRuntime();
             try {
                 runtime.exec("rundll32 url.dll,FileProtocolHandler " + HOMEPAGE);
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Auto-launch is not supported, please open a browser and go to localhost:8080");
             }
         }
     }

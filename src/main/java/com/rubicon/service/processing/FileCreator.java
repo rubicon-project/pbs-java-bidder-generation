@@ -9,21 +9,33 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class FileCreator {
 
     String makeBidderFile(BidderData bidderData, FileType fileType) throws IOException {
-        final String filePath = bidderData.getPbsDirectory() + getPbsFilePath(bidderData, fileType);
+        final String filePath = getAbsolutePbsDirectoryPath() + getPbsFilePath(bidderData, fileType);
         final Path path = Paths.get(filePath);
         Files.createDirectories(path.getParent());
-        if (!(fileType.equals(FileType.BIDDER) || fileType.equals(FileType.EXT)
-                || fileType.equals(FileType.BIDDER_TEST))) {
-                Files.createFile(path);
-        }
 
+        final List<FileType> nonTemplateFiles = Arrays.asList(FileType.BIDDER, FileType.EXT, FileType.BIDDER_TEST);
+        if (!nonTemplateFiles.contains(fileType)) {
+            try {
+                Files.createFile(path);
+            } catch (FileAlreadyExistsException e) {
+                Files.delete(path);
+                Files.createFile(path);
+            }
+        }
         return filePath;
+    }
+
+    private static String getAbsolutePbsDirectoryPath() {
+        final Path currentRelativePath = Paths.get("");
+        final String bgtPath = currentRelativePath.toAbsolutePath().toString();
+        return StringUtils.replace(bgtPath, "pbs-java-bidder-generation", "prebid-server-java");
     }
 
     private static String getPbsFilePath(BidderData bidderData, FileType fileType) {

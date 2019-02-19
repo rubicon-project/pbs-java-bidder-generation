@@ -474,7 +474,7 @@ public class StringGenerator {
                             .append(")\n");
                 } else if (targetPath.length == 2) {
                     if (isImp) {
-                        builder.append("imp(singletonList(bidRequest.getImp().get(0).toBuilder().").append(targetPath[1])
+                        builder.append("imp(singletonList(bidRequest.getImp().get(0).toBuilder()\n.").append(targetPath[1])
                                 .append("(").append(resolveValue(singleTransformation, bidderData))
                                 .append(").build()))\n");
                     } else {
@@ -486,7 +486,7 @@ public class StringGenerator {
                     final ClassName midFieldClass = ClassName.get("com.iab.openrtb.request",
                             StringUtils.capitalize(targetPath[1]));
                     if (isImp) {
-                        builder.append("imp(singletonList(bidRequest.getImp().get(0).toBuilder().").append(targetPath[1])
+                        builder.append("imp(singletonList(bidRequest.getImp().get(0).toBuilder()\n.").append(targetPath[1])
                                 .append("(").append(midFieldClass).append(".builder().")
                                 .append(targetPath[2]).append("(")
                                 .append(resolveValue(singleTransformation, bidderData))

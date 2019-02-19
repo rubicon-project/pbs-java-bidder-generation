@@ -13,17 +13,13 @@ import java.util.List;
 public class BidderData {
 
     @NotBlank
-    String pbsDirectory;
-
-    @NotBlank
     String strategy;
 
     @NotBlank
     String bidderName;
 
-    @Valid
-    @NotNull
-    UsersyncerData usersyncer;
+    @NotBlank
+    String urlParams;
 
     @Valid
     @NotNull

@@ -26,8 +26,6 @@ public class PropertiesData {
 
     List<String> siteMediaTypes;
 
-    List<String> supportedVendors;
-
     @NotNull
     Integer vendorId;
 }

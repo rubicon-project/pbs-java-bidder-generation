@@ -1,11 +1,8 @@
 {
+  "bidderName": "newBidder",
   "pbsDirectory": "C:/Users/rostyslav.goncharuk/IdeaProjects/prebid-server-java",
   "strategy": "SINGLE_REQUEST",
-  "bidderName": "newBidder",
-  "usersyncer": {
-    "cookieFamilyName": "newBidder",
-    "urlPrefix": "%2Fsetuid%3Fbidder%3D$newBidder%26gdpr%3D{{gdpr}}%26gdpr_consent%3D{{gdpr_consent}}%26uid%3D"
-  },
+  "urlParams": "%2Fsetuid%3Fbidder%3D$newBidder%26gdpr%3D{{gdpr}}%26gdpr_consent%3D{{gdpr_consent}}%26uid%3D",
   "properties": {
     "endpointUrl": "https://test.newbidder.com/openrtb",
     "usersyncerUrl": "https://rtb.newbidder.com/usersyncer",
@@ -18,7 +15,6 @@
       "banner",
       "video"
     ],
-    "supportedVendors":[],
     "vendorId": 66
   },
   "bidderParams": [
