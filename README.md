@@ -90,4 +90,16 @@ Fields:
 * Bidder params - Add the parameters allowed by your bidder. e.g. 'placementId'.
 * Transformations - Add customizations to the OpenRTB JSON needed by your bidder. Basically, if there's a static value your bidder needs to have, or a simple field copy, the `transformations` listed above will do the job.
 
-5. Check generated files in `prebid-server-java` directory.
+5. Check out the generated files in `prebid-server-java` directory. e.g. `cd ~/git/prebid-server-java/src/main/java/org/prebid/server/bidder/myBidder`
+
+6. Create a branch and submit a PR to the open source repo
+    * cd ~/git/prebid-server-java
+    * git checkout -b myBidder-adapter
+    * git status   # eyeball to make sure no unexpected changes are going to be submitted
+    * git add
+    * git commit -m "myBidder adapter generated through the UI"
+    * git push --set-upstream origin myBidder-adapter
+    * In the browser go to https://github.com/rubicon-project/prebid-server-java
+    * Create a PR from the new branch
+
+
