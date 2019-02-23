@@ -78,16 +78,16 @@ In case the files already exist (e.g. you need to change something) - make neces
 
 Fields:
 
-    * Bidder Name - e.g. "myBidder". No spaces or special characters, we recommend that this should be the same as your Prebid.js bidder code.
-    * Maintainer Email - we want to be able to get in touch with you should something go wrong
-    * IAB Vendor ID - Prebid.org supports the IAB method of complying with GDPR. https://advertisingconsent.eu/vendor-list/
-    * Auction endpoint URL - the POST destination where the final generated OpenRTB will be sent to your bidder.
-    * User syncer url - this is where /cookie_sync should send the user to get an ID cookie for your domain. e.g. //id.mybidder.com/getuid?
-    * User sync URL params - these are the arguments that should be sent to the user sync URL. There are several macros supported -- {{pbs-setuid-url}}, {{gdpr_consent}}, and {{gdpr}}. These macros will be resolved by the platform before going to your endpoint. e.g. redir%3D{{pbs-setuid-url}}%3Fbidder%3Dadnxs%26gdpr%3D{{gdpr}}%26gdpr_consent%3D{{gdpr_consent}}%26uid%3D%24UID
-    * Endpoint accepts multiple imps - if your bidder accepts multiple imps in the OpenRTB, use this value. Otherwise, if you need to have the imps split out into separate requests, switch to 'Endpoint accepts one imp at a time'.
-    * Accepts web traffic - define which types of media your bidder accepts
-    * Accepts app traffic - define which types of media your bidder accepts
-    * Bidder params - Add the parameters allowed by your bidder. e.g. 'placementId'.
-    * Transformations - Add customizations to the OpenRTB JSON needed by your bidder. See above.
+* Bidder Name - e.g. "myBidder". No spaces or special characters, we recommend that this should be the same as your Prebid.js bidder code.
+* Maintainer Email - we want to be able to get in touch with you should something go wrong
+* IAB Vendor ID - Prebid.org supports the IAB method of complying with GDPR. https://advertisingconsent.eu/vendor-list/
+* Auction endpoint URL - the POST destination where the final generated OpenRTB will be sent to your bidder.
+* User syncer url - this is where /cookie_sync should send the user to get an ID cookie for your domain. e.g. //id.mybidder.com/getuid?
+* User sync URL params - these are the arguments that should be sent to the user sync URL. There are several macros supported -- {{pbs-setuid-url}}, {{gdpr_consent}}, and {{gdpr}}. These macros will be resolved by the platform before going to your endpoint. e.g. redir%3D{{pbs-setuid-url}}%3Fbidder%3Dadnxs%26gdpr%3D{{gdpr}}%26gdpr_consent%3D{{gdpr_consent}}%26uid%3D%24UID
+* Endpoint accepts multiple imps - if your bidder accepts multiple imps in the OpenRTB, use this value. Otherwise, if you need to have the imps split out into separate requests, switch to 'Endpoint accepts one imp at a time'.
+* Accepts web traffic - define which types of media your bidder accepts
+* Accepts app traffic - define which types of media your bidder accepts
+* Bidder params - Add the parameters allowed by your bidder. e.g. 'placementId'.
+* Transformations - Add customizations to the OpenRTB JSON needed by your bidder. Basically, if there's a static value your bidder needs to have, or a simple field copy, the `transformations` listed above will do the job.
 
 5. Check generated files in `prebid-server-java` directory.
