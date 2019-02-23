@@ -77,6 +77,7 @@ In case the files already exist (e.g. you need to change something) - make neces
 `Generate Bidder Files` again - all necessary files will be overridden.
 
 Fields:
+
     * Bidder Name - e.g. "myBidder". No spaces or special characters, we recommend that this should be the same as your Prebid.js bidder code.
     * Maintainer Email - we want to be able to get in touch with you should something go wrong
     * IAB Vendor ID - Prebid.org supports the IAB method of complying with GDPR. https://advertisingconsent.eu/vendor-list/
