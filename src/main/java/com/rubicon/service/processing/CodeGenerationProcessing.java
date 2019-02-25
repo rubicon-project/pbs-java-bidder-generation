@@ -345,7 +345,7 @@ public class CodeGenerationProcessing {
                         .addMethod(endpointValidationTest)
                         .addMethod(extCannotBeParsedTest);
 
-        resolveAndAddBidderTransformationsTest(testClassBuilder, bidderData);
+        resolveAndAddBidderTransformationsTest(testClassBuilder, bidderData, bidderInstance);
 
         testClassBuilder
                 .addMethod(responseBodyTest)
@@ -367,13 +367,15 @@ public class CodeGenerationProcessing {
                 .build();
     }
 
-    private void resolveAndAddBidderTransformationsTest(TypeSpec.Builder builder, BidderData bidderData) {
+    private void resolveAndAddBidderTransformationsTest(TypeSpec.Builder builder, BidderData bidderData,
+                                                        FieldSpec bidderInstance) {
         final MethodSpec transformationsTest = createTestMethod("makeHttpRequestsShouldReturnExpectedRequest",
                 method -> method
                         .addCode("// given\n")
                         .addCode(stringGenerator.resolveGivenBidRequestString(bidderData))
                         .addCode("\n\n")
-                        .addCode("// when\nfinal Result<List<HttpRequest<BidRequest>>> result = newBidderBidder.makeHttpRequests(bidRequest);\n\n")
+                        .addCode("// when\nfinal Result<List<HttpRequest<BidRequest>>> result = "
+                                + "$NBidder.makeHttpRequests(bidRequest);\n\n", bidderInstance)
                         .addCode("// then\n")
                         .addCode(stringGenerator.resolveExpectedBidRequestString(bidderData))
                         .addCode("\n")

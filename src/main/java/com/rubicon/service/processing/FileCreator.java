@@ -46,16 +46,12 @@ public class FileCreator {
         final String bidderName = bidderData.getBidderName();
         final String capitalizedName = StringUtils.capitalize(bidderName);
         switch (fileType) {
-            case USERSYNCER:
-                return bidderName.toLowerCase() + "/" + capitalizedName;
             case PROPERTIES:
                 return bidderName.toLowerCase();
             case SCHEMA:
                 return bidderName;
             case CONFIG:
                 return capitalizedName;
-            case TEST_USERSYNCER:
-                return bidderName.toLowerCase() + "/" + capitalizedName;
             case TEST_SIMPLE_BIDDER:
                 return bidderName.toLowerCase() + "/" + capitalizedName;
             default:

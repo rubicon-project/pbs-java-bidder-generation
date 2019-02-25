@@ -19,6 +19,8 @@ public class PropertiesData {
     @NotBlank
     String usersyncerUrl;
 
+    String uidPlaceholder;
+
     @NotBlank
     String maintainerEmail;
 

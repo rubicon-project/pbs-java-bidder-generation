@@ -2,7 +2,6 @@ package com.rubicon.service.processing;
 
 import com.rubicon.model.BidderData;
 import com.rubicon.model.PropertiesData;
-import com.rubicon.model.UsersyncerData;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -21,11 +20,9 @@ import java.util.Map;
 public class TemplateProcessing {
 
     private static final String TEMPLATES_DIRECTORY = "src/main/resources/templates";
-    private static final String USERSYNCER_TEMPLATE = "usersyncer.ftl";
     private static final String PROPERTIES_TEMPLATE = "properties.ftl";
     private static final String BIDDER_CONFIG_TEMPLATE = "configuration.ftl";
     private static final String SCHEMA_TEMPLATE = "schema.ftl";
-    private static final String USERSYNC_TEST_TEMPLATE = "usersyncer_test.ftl";
 
     /**
      * Templates for generating basic set of tests when no transformations are being made,
@@ -39,8 +36,6 @@ public class TemplateProcessing {
 
     public void generateBidderFilesFromTemplates(BidderData bidderData) throws IOException, TemplateException {
         createPropertiesYamlFile(bidderData);
-        createUsersyncerJavaFile(bidderData);
-        createUsersyncerTestFile(bidderData);
         createBidderSchemaJsonFile(bidderData);
         createBidderConfigurationJavaFile(bidderData);
 
@@ -56,14 +51,8 @@ public class TemplateProcessing {
     private void createPropertiesYamlFile(BidderData bidderData) throws IOException, TemplateException {
         final PropertiesData propertiesData = bidderData.getProperties();
         propertiesData.setBidderName(bidderData.getBidderName());
+        propertiesData.setUidPlaceholder(bidderData.getUrlParams());
         createFileFromTemplate(bidderData, propertiesData, PROPERTIES_TEMPLATE, FileType.PROPERTIES);
-    }
-
-    private void createUsersyncerJavaFile(BidderData bidderData) throws IOException, TemplateException {
-        final String bidderName = bidderData.getBidderName();
-        final UsersyncerData usersyncerData = new UsersyncerData(bidderName, bidderName.toLowerCase(),
-                bidderData.getUrlParams());
-        createFileFromTemplate(bidderData, usersyncerData, USERSYNCER_TEMPLATE, FileType.USERSYNCER);
     }
 
     private void createBidderConfigurationJavaFile(BidderData bidderData) throws IOException, TemplateException {
@@ -75,13 +64,6 @@ public class TemplateProcessing {
         schemaData.put("bidderParams", bidderData.getBidderParams());
         schemaData.put("bidderName", bidderData.getBidderName());
         createFileFromTemplate(bidderData, schemaData, SCHEMA_TEMPLATE, FileType.SCHEMA);
-    }
-
-    private void createUsersyncerTestFile(BidderData bidderData) throws IOException, TemplateException {
-        final String bidderName = bidderData.getBidderName();
-        final UsersyncerData usersyncerData = new UsersyncerData(bidderName, bidderName.toLowerCase(),
-                bidderData.getUrlParams());
-        createFileFromTemplate(bidderData, usersyncerData, USERSYNC_TEST_TEMPLATE, FileType.TEST_USERSYNCER);
     }
 
     private void createNoExtBidderTestFile(BidderData bidderData) throws IOException, TemplateException {

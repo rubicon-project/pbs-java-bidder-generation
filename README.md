@@ -43,12 +43,10 @@ folders and files there. In such case, you would have to manually move files to 
 
 Following files(and folders, if they don't exist) are being generated in local PBS directory:
 1. `src/main/java/org/prebid/server/bidder/{biddername}/{BidderName}Bidder.java` - java class that handles bidder request transformations;
-1. `src/main/java/org/prebid/server/bidder/{biddername}/{BidderName}Usersyncer.java` - java class that handles user sync;
 1. `src/main/java/org/prebid/server/spring/config/bidder/{BidderName}Configuration.java` - bidder java configuration class;
 1. `src/main/java/org/prebid/server/proto/openrtb/ext/request/{biddername}/ExtImp{BidderName}.java` - java class that is a model for bidder-specific extension, passed in request.imp.ext.bidder;
-1. `src/main/resources/bidder-config/{biddername}.yaml` - bidder configuration properties and meta info file;
+1. `src/main/resources/bidder-config/{biddername}.yaml` - bidder configuration properties, user sync and meta info file;
 1. `src/main/resources/static/bidder-params/{bidderName}.json` - bidder json schema that describes bidder-specific parameters;
-1. `src/test/java/org/prebid/server/bidder/{biddername}/{BidderName}UsersyncerTest.java` - java test class for bidder's Usersyncer;
 1. `src/test/java/org/prebid/server/bidder/{biddername}/{BidderName}BidderTest.java` - java test class for Bidder class.
 
 In case the any file at the targeted path already exists - it would be overridden.

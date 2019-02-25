@@ -2,7 +2,6 @@ adapters:
   ${bidderName?lower_case}:
     enabled: false
     endpoint: ${endpointUrl}
-    usersync-url: ${usersyncerUrl}
     pbs-enforces-gdpr: true
     deprecated-names:
     aliases:
@@ -20,3 +19,9 @@ adapters:
         </#list>
       supported-vendors:
       vendor-id: ${vendorId}
+    usersync:
+      url: ${usersyncerUrl}
+      redirect-url: /setuid?bidder=${bidderName?lower_case}&gdpr={{gdpr}}&gdpr_consent={{gdpr_consent}}&uid=${uidPlaceholder}
+      cookie-family-name: ${bidderName?lower_case}
+      type: redirect
+      support-cors: false
