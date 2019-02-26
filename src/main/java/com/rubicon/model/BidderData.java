@@ -18,7 +18,6 @@ public class BidderData {
     @NotBlank
     String bidderName;
 
-    @NotBlank
     String urlParams;
 
     @Valid

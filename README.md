@@ -81,7 +81,12 @@ Fields:
 * IAB Vendor ID - Prebid.org supports the IAB method of complying with GDPR. https://advertisingconsent.eu/vendor-list/
 * Auction endpoint URL - the POST destination where the final generated OpenRTB will be sent to your bidder.
 * User syncer url - this is where /cookie_sync should send the user to get an ID cookie for your domain. e.g. //id.mybidder.com/getuid?
-* User sync URL params - these are the arguments that should be sent to the user sync URL. There are several macros supported -- {{pbs-setuid-url}}, {{gdpr_consent}}, and {{gdpr}}. These macros will be resolved by the platform before going to your endpoint. e.g. redir%3D{{pbs-setuid-url}}%3Fbidder%3Dadnxs%26gdpr%3D{{gdpr}}%26gdpr_consent%3D{{gdpr_consent}}%26uid%3D%24UID
+* User sync UID placeholder - this is the argument that represents bidder's UID placeholder wich should be sent to 
+the user sync URL. The placeholder that should be provided can vary on your bidder specifics: it could be $UID, ${UID}, 
+blank, or any other placeholder. 
+By default, leaves the `uid=` which is blank/absent UID. In case any extra changes should be made, you can manually 
+modify the generated `{biddername}.yaml` config file. 
+Example of generated usersync params: `/setuid?bidder=biddername&gdpr={{gdpr}}&gdpr_consent={{gdpr_consent}}&uid=$UID`
 * Endpoint accepts multiple imps - if your bidder accepts multiple imps in the OpenRTB, use this value. Otherwise, if you need to have the imps split out into separate requests, switch to 'Endpoint accepts one imp at a time'.
 * Accepts web traffic - define which types of media your bidder accepts
 * Accepts app traffic - define which types of media your bidder accepts
