@@ -16,7 +16,7 @@ import org.prebid.server.bidder.model.HttpRequest;
 import org.prebid.server.bidder.model.HttpResponse;
 import org.prebid.server.bidder.model.Result;
 import org.prebid.server.proto.openrtb.ext.ExtPrebid;
-import org.prebid.server.proto.openrtb.ext.request.newbidder.ExtImp${bidderName?cap_first};
+import org.prebid.server.proto.openrtb.ext.request.${bidderName?lower_case}.ExtImp${bidderName?cap_first};
 
 import java.util.List;
 import java.util.function.Function;
@@ -48,7 +48,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
         // given
         final BidRequest bidRequest = BidRequest.builder()
                 .imp(singletonList(Imp.builder()
-                        .ext(mapper.valueToTree(ExtPrebid.of(null, mapper.createObjectNode())))
+                        .ext(mapper.valueToTree(ExtPrebid.of(null, mapper.createArrayNode())))
                         .build()))
                 .id("request_id")
                 .build();
