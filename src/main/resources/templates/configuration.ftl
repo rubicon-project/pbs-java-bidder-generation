@@ -1,12 +1,11 @@
 package org.prebid.server.spring.config.bidder;
 
 import org.prebid.server.bidder.BidderDeps;
-import org.prebid.server.bidder.Usersyncer;
 import org.prebid.server.bidder.${bidderName?lower_case}.${bidderName?cap_first}Bidder;
-import org.prebid.server.proto.response.BidderInfo;
 import org.prebid.server.spring.config.bidder.model.BidderConfigurationProperties;
-import org.prebid.server.spring.config.bidder.model.MetaInfo;
-import org.prebid.server.spring.config.bidder.model.UsersyncConfigurationProperties;
+import org.prebid.server.spring.config.bidder.util.BidderDepsAssembler;
+import org.prebid.server.spring.config.bidder.util.BidderInfoCreator;
+import org.prebid.server.spring.config.bidder.util.UsersyncerCreator;
 import org.prebid.server.spring.env.YamlPropertySourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,15 +39,10 @@ public class ${bidderName?cap_first}Configuration {
 
     @Bean
     BidderDeps ${bidderName}BidderDeps() {
-        final UsersyncConfigurationProperties usersync = configProperties.getUsersync();
-        final MetaInfo metaInfo = configProperties.getMetaInfo();
         return BidderDepsAssembler.forBidder(BIDDER_NAME)
                 .withConfig(configProperties)
-                .bidderInfo(BidderInfo.create(configProperties.getEnabled(), metaInfo.getMaintainerEmail(),
-                        metaInfo.getAppMediaTypes(), metaInfo.getSiteMediaTypes(), metaInfo.getSupportedVendors(),
-                        metaInfo.getVendorId(), configProperties.getPbsEnforcesGdpr()))
-                .usersyncerCreator(() -> new Usersyncer(usersync.getCookieFamilyName(), usersync.getUrl(),
-                        usersync.getRedirectUrl(), externalUrl, usersync.getType(), usersync.getSupportCors()))
+                .bidderInfo(BidderInfoCreator.create(configProperties))
+                .usersyncerCreator(UsersyncerCreator.create(configProperties.getUsersync(), externalUrl))
                 .bidderCreator(() -> new ${bidderName?cap_first}Bidder(configProperties.getEndpoint()))
                 .assemble();
     }
