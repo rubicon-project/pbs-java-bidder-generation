@@ -49,7 +49,7 @@ public class FileCreator {
             case PROPERTIES:
                 return bidderName.toLowerCase();
             case SCHEMA:
-                return bidderName;
+                return bidderName.toLowerCase();
             case CONFIG:
                 return capitalizedName;
             case TEST_SIMPLE_BIDDER:
