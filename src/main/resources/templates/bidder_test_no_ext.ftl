@@ -30,11 +30,11 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
 
     private static final String ENDPOINT_URL = "https://test.endpoint.com";
 
-    private ${bidderName?cap_first}Bidder ${bidderName}Bidder;
+    private ${bidderName?cap_first}Bidder ${bidderName?lower_case}Bidder;
 
     @Before
     public void setUp() {
-        ${bidderName}Bidder = new ${bidderName?cap_first}Bidder(ENDPOINT_URL);
+        ${bidderName?lower_case}Bidder = new ${bidderName?cap_first}Bidder(ENDPOINT_URL);
     }
 
     @Test

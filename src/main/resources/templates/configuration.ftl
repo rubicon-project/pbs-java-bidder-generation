@@ -21,7 +21,7 @@ import javax.validation.constraints.NotBlank;
 @PropertySource(value = "classpath:/bidder-config/${bidderName?lower_case}.yaml", factory = YamlPropertySourceFactory.class)
 public class ${bidderName?cap_first}Configuration {
 
-    private static final String BIDDER_NAME = "${bidderName}";
+    private static final String BIDDER_NAME = "${bidderName?lower_case}";
 
     @Value("${r"${external-url}"}")
     @NotBlank
@@ -38,7 +38,7 @@ public class ${bidderName?cap_first}Configuration {
     }
 
     @Bean
-    BidderDeps ${bidderName}BidderDeps() {
+    BidderDeps ${bidderName?lower_case}BidderDeps() {
         return BidderDepsAssembler.forBidder(BIDDER_NAME)
                 .withConfig(configProperties)
                 .bidderInfo(BidderInfoCreator.create(configProperties))
