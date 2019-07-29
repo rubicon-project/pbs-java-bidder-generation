@@ -67,7 +67,7 @@ public class CodeGenerationProcessing {
     }
 
     private static void setStaticFields(BidderData bidderData) {
-        bidderName = bidderData.getBidderName().toLowerCase();
+        bidderName = bidderData.getBidderName();
         bidderPackage = bidderName.toLowerCase();
         final String capitalizedName = StringUtils.capitalize(bidderName);
         bidderImpExtName = "ExtImp" + capitalizedName;
