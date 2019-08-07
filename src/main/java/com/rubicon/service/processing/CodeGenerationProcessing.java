@@ -1,5 +1,6 @@
 package com.rubicon.service.processing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.rubicon.model.BidderData;
 import com.rubicon.model.BidderParam;
@@ -94,7 +95,11 @@ public class CodeGenerationProcessing {
             final String fieldName = field.getName();
             try {
                 final Class<?> forName = Class.forName(qualifiedClassName(field.getType()));
-                final FieldSpec fieldSpec = FieldSpec.builder(forName, fieldName).build();
+                final FieldSpec fieldSpec = FieldSpec.builder(forName, fieldName)
+                        .addAnnotation(AnnotationSpec.builder(JsonProperty.class)
+                                .addMember("value", "$S", fieldName)
+                                .build())
+                        .build();
                 extensionClassBuilder.addField(fieldSpec);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
