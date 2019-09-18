@@ -3,6 +3,7 @@ adapters:
     enabled: false
     endpoint: ${endpointUrl}
     pbs-enforces-gdpr: true
+    modifying-vast-xml-allowed: true
     deprecated-names:
     aliases:
     meta-info:
