@@ -35,12 +35,13 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
 
     @Before
     public void setUp() {
-        ${bidderName?lower_case}Bidder = new ${bidderName?cap_first}Bidder(ENDPOINT_URL);
+        ${bidderName?lower_case}Bidder = new ${bidderName?cap_first}Bidder(ENDPOINT_URL, jacksonMapper);
     }
 
     @Test
     public void creationShouldFailOnInvalidEndpointUrl() {
-        assertThatIllegalArgumentException().isThrownBy(() -> new ${bidderName?cap_first}Bidder("invalid_url"));
+        assertThatIllegalArgumentException().isThrownBy(
+            () -> new ${bidderName?cap_first}Bidder("invalid_url", jacksonMapper));
     }
 
     @Test
@@ -54,7 +55,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
                 .build();
 
         // when
-        final Result<List<HttpRequest<BidRequest>>> result = ${bidderName}Bidder.makeHttpRequests(bidRequest);
+        final Result<List<HttpRequest<BidRequest>>> result = ${bidderName?lower_case}Bidder.makeHttpRequests(bidRequest);
 
         // then
         assertThat(result.getErrors()).hasSize(1);
@@ -96,7 +97,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
                 .build();
 
         // when
-        final Result<List<HttpRequest<BidRequest>>> result = ${bidderName}Bidder.makeHttpRequests(bidRequest);
+        final Result<List<HttpRequest<BidRequest>>> result = ${bidderName?lower_case}Bidder.makeHttpRequests(bidRequest);
 
         // then
         assertThat(result.getErrors()).isEmpty();
@@ -111,7 +112,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
         final HttpCall<BidRequest> httpCall = givenHttpCall(null, "invalid");
 
         // when
-        final Result<List<BidderBid>> result = ${bidderName}Bidder.makeBids(httpCall, null);
+        final Result<List<BidderBid>> result = ${bidderName?lower_case}Bidder.makeBids(httpCall, null);
 
         // then
         assertThat(result.getErrors()).hasSize(1);
@@ -127,7 +128,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
                 mapper.writeValueAsString(null));
 
         // when
-        final Result<List<BidderBid>> result = ${bidderName}Bidder.makeBids(httpCall, null);
+        final Result<List<BidderBid>> result = ${bidderName?lower_case}Bidder.makeBids(httpCall, null);
 
         // then
         assertThat(result.getErrors()).isEmpty();
@@ -141,7 +142,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
                 mapper.writeValueAsString(BidResponse.builder().build()));
 
         // when
-        final Result<List<BidderBid>> result = ${bidderName}Bidder.makeBids(httpCall, null);
+        final Result<List<BidderBid>> result = ${bidderName?lower_case}Bidder.makeBids(httpCall, null);
 
         // then
         assertThat(result.getErrors()).isEmpty();
@@ -159,7 +160,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
                         givenBidResponse(bidBuilder -> bidBuilder.impid("123"))));
 
         // when
-        final Result<List<BidderBid>> result = ${bidderName}Bidder.makeBids(httpCall, null);
+        final Result<List<BidderBid>> result = ${bidderName?lower_case}Bidder.makeBids(httpCall, null);
 
         // then
         assertThat(result.getErrors()).isEmpty();
@@ -169,7 +170,7 @@ public class ${bidderName?cap_first}BidderTest extends VertxTest {
 
     @Test
     public void extractTargetingShouldReturnEmptyMap() {
-        assertThat(${bidderName}Bidder.extractTargeting(mapper.createObjectNode())).isEqualTo(emptyMap());
+        assertThat(${bidderName?lower_case}Bidder.extractTargeting(mapper.createObjectNode())).isEqualTo(emptyMap());
     }
 
     private static BidResponse givenBidResponse(Function<Bid.BidBuilder, Bid.BidBuilder> bidCustomizer) {

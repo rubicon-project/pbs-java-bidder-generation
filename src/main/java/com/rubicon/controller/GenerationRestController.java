@@ -14,14 +14,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @RestController
 public class GenerationRestController {
 
-    private ApplicationContext applicationContext;
+    private final BidderService bidderService;
 
-    @Autowired
-    private BidderService bidderService;
+    public GenerationRestController(BidderService bidderService) {
+        this.bidderService = Objects.requireNonNull(bidderService);
+    }
 
     @PostMapping(value = "/generate", consumes = "application/json")
     @ResponseStatus(code = HttpStatus.OK, reason = "Generating bidder files")

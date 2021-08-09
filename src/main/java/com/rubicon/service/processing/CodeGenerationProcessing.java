@@ -107,7 +107,7 @@ public class CodeGenerationProcessing {
         }
 
         return JavaFile.builder("org.prebid.server.proto.openrtb.ext.request."
-                + bidderPackage, extensionClassBuilder.build())
+                        + bidderPackage, extensionClassBuilder.build())
                 .indent("    ")
                 .skipJavaLangImports(true)
                 .build();
@@ -125,10 +125,12 @@ public class CodeGenerationProcessing {
                 : ClassName.get(Void.class);
 
         final String strategy = bidderData.getStrategy();
+        final ClassName jacksonMapper = ClassName.get("org.prebid.server.json", "JacksonMapper");
         final MethodSpec bidderConstructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(String.class, "endpointUrl")
-                .addStatement("super(endpointUrl, RequestCreationStrategy.$L, $T.class)", strategy, extClass)
+                .addParameter(jacksonMapper, "mapper")
+                .addStatement("super(endpointUrl, RequestCreationStrategy.$L, $T.class, mapper)", strategy, extClass)
                 .build();
 
         final ClassName openrtbBidder = ClassName.get("org.prebid.server.bidder", "OpenrtbBidder");
@@ -260,17 +262,15 @@ public class CodeGenerationProcessing {
         final ClassName bidderClass = ClassName.get("org.prebid.server.bidder." + bidderPackage, bidderFile);
         final FieldSpec bidderInstance = FieldSpec.builder(bidderClass, bidderName + "Bidder", Modifier.PRIVATE)
                 .build();
-
         final MethodSpec setUpMethod = MethodSpec.methodBuilder("setUp")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Before.class)
-                .addStatement("$LBidder = new $L($N)", bidderName, bidderFile, endpointField)
+                .addStatement("$LBidder = new $L($N, jacksonMapper)", bidderName, bidderFile, endpointField)
                 .build();
 
         final MethodSpec endpointValidationTest = createTestMethod("creationShouldFailOnInvalidEndpointUrl",
-                method -> method
-                        .addStatement(" assertThatIllegalArgumentException().isThrownBy(() -> new $L(\"invalid_url\"))",
-                                bidderFile));
+                method -> method.addStatement(" assertThatIllegalArgumentException().isThrownBy(() -> " +
+                        "new $L(\"invalid_url\", jacksonMapper))", bidderFile));
 
         final ClassName extPrebid = ClassName.get("org.prebid.server.proto.openrtb.ext", "ExtPrebid");
         final MethodSpec extCannotBeParsedTest = createTestMethod("makeHttpRequestsShouldReturnErrorIfImpExtCouldNotBeParsed",
@@ -357,7 +357,7 @@ public class CodeGenerationProcessing {
         addUtilityMethods(testClassBuilder, bidderData);
 
         return JavaFile.builder("org.prebid.server.bidder."
-                + bidderPackage, testClassBuilder.build())
+                        + bidderPackage, testClassBuilder.build())
                 .skipJavaLangImports(true)
                 .addStaticImport(Collections.class, "emptyMap", "singletonList")
                 .addStaticImport(Assertions.class, "assertThat", "assertThatIllegalArgumentException")
@@ -469,8 +469,8 @@ public class CodeGenerationProcessing {
     private static MethodSpec createTestMethod(String methodName,
                                                Function<MethodSpec.Builder, MethodSpec.Builder> customizer) {
         return customizer.apply(MethodSpec.methodBuilder(methodName)
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Test.class))
+                        .addModifiers(Modifier.PUBLIC)
+                        .addAnnotation(Test.class))
                 .build();
     }
 }
