@@ -145,7 +145,7 @@ public class StringGenerator {
         for (BidderParam param : params) {
             joiner.add(resolveParamValue(param, numValue++));
         }
-        return builder.append(joiner.toString()).append("))))\n").toString();
+        return builder.append(joiner).append("))))\n").toString();
     }
 
     private static String addExtBuilder(List<BidderParam> params) {
@@ -170,9 +170,9 @@ public class StringGenerator {
             case "Double":
                 return String.valueOf(Double.valueOf(startNumValue));
             case "Float":
-                return String.valueOf(Float.valueOf(startNumValue)) + "F";
+                return Float.valueOf(startNumValue) + "F";
             case "Long":
-                return String.valueOf(Long.valueOf(startNumValue)) + "L";
+                return Long.valueOf(startNumValue) + "L";
             case "Boolean":
                 return String.valueOf(true);
             default:
@@ -390,8 +390,8 @@ public class StringGenerator {
         return builder.append(");").toString();
     }
 
-    private static List integerFields = Arrays.asList("w", "h", "at", "pos", "topframe", "minduration", "maxduration",
-            "startdelay", "placement", "sequence", "minbitrate", "maxbitrate", "secure");
+    private static final List<String> integerFields = Arrays.asList("w", "h", "at", "pos", "topframe", "minduration",
+            "maxduration", "startdelay", "placement", "sequence", "minbitrate", "maxbitrate", "secure");
 
     public String resolveExpectedBidRequestString(BidderData bidderData) {
         final StringBuilder builder = new StringBuilder("final BidRequest expectedRequest = bidRequest.toBuilder()\n");
@@ -522,7 +522,7 @@ public class StringGenerator {
                     .map(String::toLowerCase)
                     .findFirst().orElse(null);
 
-            final String finalType = fieldType.equals("string") ? "text" : fieldType;
+            final String finalType = "string".equals(fieldType) ? "text" : fieldType;
             return "bidRequest.getImp().get(0).getExt().get(\"bidder\").get(\""
                     + extField + "\")." + finalType + "Value()";
         }
