@@ -2,9 +2,9 @@ package org.prebid.server.spring.config.bidder;
 
 import org.prebid.server.bidder.BidderDeps;
 import org.prebid.server.bidder.${bidderName?lower_case}.${bidderName?cap_first}Bidder;
+import org.prebid.server.json.JacksonMapper;
 import org.prebid.server.spring.config.bidder.model.BidderConfigurationProperties;
 import org.prebid.server.spring.config.bidder.util.BidderDepsAssembler;
-import org.prebid.server.spring.config.bidder.util.BidderInfoCreator;
 import org.prebid.server.spring.config.bidder.util.UsersyncerCreator;
 import org.prebid.server.spring.env.YamlPropertySourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +28,9 @@ public class ${bidderName?cap_first}Configuration {
     private String externalUrl;
 
     @Autowired
+    private JacksonMapper mapper;
+
+    @Autowired
     @Qualifier("${bidderName?lower_case}ConfigurationProperties")
     private BidderConfigurationProperties configProperties;
 
@@ -41,9 +44,8 @@ public class ${bidderName?cap_first}Configuration {
     BidderDeps ${bidderName?lower_case}BidderDeps() {
         return BidderDepsAssembler.forBidder(BIDDER_NAME)
                 .withConfig(configProperties)
-                .bidderInfo(BidderInfoCreator.create(configProperties))
-                .usersyncerCreator(UsersyncerCreator.create(configProperties.getUsersync(), externalUrl))
-                .bidderCreator(() -> new ${bidderName?cap_first}Bidder(configProperties.getEndpoint()))
+                .usersyncerCreator(UsersyncerCreator.create(externalUrl))
+                .bidderCreator(config -> new ${bidderName?cap_first}Bidder(config.getEndpoint(), mapper))
                 .assemble();
     }
 }
